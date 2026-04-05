@@ -7,15 +7,21 @@ description: Деплой Freqtrade-бота на VPS-сервер. Исполь
 
 ## Обзор
 
-Локальная разработка → VPS dry-run → VPS live. Каждый шаг — с проверкой.
+Деплой состоит из двух этапов. Первый — обязательный, второй — только по
+явному решению пользователя:
 
-## Шаг 1: Подключение к серверу
+1. **VPS dry-run** — бот работает 24/7 на сервере, торгует виртуально
+2. **VPS live** — переключение на реальные деньги (отдельный шаг, позже)
+
+## Часть 1: VPS dry-run
+
+### 1.1 Подключение к серверу
 
 ```bash
 ssh user@YOUR_SERVER_IP
 ```
 
-## Шаг 2: Установка Docker
+### 1.2 Установка Docker
 
 ```bash
 # Ubuntu/Debian
@@ -24,109 +30,113 @@ sudo usermod -aG docker $USER
 # Перелогиниться для применения группы
 exit
 ssh user@YOUR_SERVER_IP
-docker --version
 ```
 
-## Шаг 3: Клонирование репозитория
+Проверь что всё установилось:
+```bash
+docker --version
+docker compose version
+```
+
+Обе команды должны вернуть версии. Если `docker compose version` не работает —
+плагин `docker-compose-plugin` не установился, повтори `apt install`.
+
+### 1.3 Клонирование репозитория
 
 ```bash
 git clone YOUR_REPO_URL algo-trading-academy
 cd algo-trading-academy
 ```
 
-## Шаг 4: Настройка .env
-
-На VPS `.env` нужен для API-ключей и Telegram:
-```bash
-cp .env.example .env
-nano .env
-```
-
-Заполни: `EXCHANGE_KEY`, `EXCHANGE_SECRET`, `TELEGRAM_TOKEN`, `TELEGRAM_CHAT_ID`
-
-## Шаг 5: Безопасность VPS
+### 1.4 Безопасность VPS
 
 Базовый минимум:
 ```bash
 # Обновления
 sudo apt update && sudo apt upgrade -y
 
-# Firewall: только SSH и нужные порты
+# Firewall: только SSH
 sudo ufw allow OpenSSH
 sudo ufw enable
-
-# НЕ открывай 8080 наружу — FreqUI через SSH-туннель
 ```
 
-Доступ к FreqUI на VPS — через SSH-туннель с локального Mac:
+НЕ открывай порт 8080 наружу. FreqUI доступен через SSH-туннель
+с локального Mac:
 ```bash
+# На ЛОКАЛЬНОМ Mac:
 ssh -L 8080:localhost:8080 user@YOUR_SERVER_IP
-# Теперь http://localhost:8080 на твоём Mac → FreqUI на VPS
+# Теперь http://localhost:8080 → FreqUI на VPS
 ```
 
-## Шаг 6: Dry-run на VPS
+### 1.5 Запуск dry-run
 
 ```bash
 docker compose up -d
+docker compose ps      # STATUS: Up (healthy)
 docker compose logs -f --tail 20
 ```
 
 Проверь:
-- Контейнер `healthy`
-- Бот торгует виртуально
-- FreqUI доступен через SSH-туннель
+- [ ] Контейнер `healthy`
+- [ ] Бот торгует виртуально (видно в логах)
+- [ ] FreqUI доступен через SSH-туннель
+- [ ] Стратегия видна в UI
 
-Погоняй dry-run минимум 24-48 часов перед переходом на live.
+**Погоняй dry-run минимум 24-48 часов** перед любыми решениями о live.
 
-## Шаг 7: Переход на live
+### 1.6 Мониторинг
 
-⚠️ **Только с ДВОЙНЫМ подтверждением пользователя.**
+```bash
+# Логи бота
+docker compose logs -f --tail 50
 
-1. Останови dry-run: `docker compose down`
-2. Создай override:
-   ```json
-   {
-       "dry_run": false
-   }
-   ```
-3. Добавь override в `command` docker-compose.yml
-4. Запусти: `docker compose up -d`
-5. Проверь первые сделки в FreqUI и Telegram
+# Здоровье контейнера
+docker compose ps
 
-## Обновление стратегии на VPS
+# Ресурсы (Docker встроенный)
+docker stats freqtrade
+```
+
+### 1.7 Обновление стратегии на VPS
 
 ```bash
 cd algo-trading-academy
-git pull origin main
-docker compose restart
-```
-
-Или для полного перезапуска:
-```bash
 docker compose down
+git pull origin main
 docker compose up -d
 ```
 
-## Мониторинг
+Всегда `down → pull → up`. Команда `restart` может не подхватить изменения
+в конфигах, образе или compose-файле.
 
-### Логи
+---
+
+## Часть 2: Переход на live
+
+⚠️ **Только с ДВОЙНЫМ подтверждением пользователя.**
+Это отдельный этап, не продолжение dry-run.
+
+### 2.1 Подготовка .env
+
+На VPS создай `.env` из шаблона:
 ```bash
-docker compose logs -f --tail 50
+cp .env.example .env
+nano .env
 ```
 
-### Здоровье контейнера
+Обязательные для live:
 ```bash
-docker compose ps
-# STATUS: Up (healthy)
+EXCHANGE_KEY=твой_api_key
+EXCHANGE_SECRET=твой_api_secret
 ```
 
-### Ресурсы сервера
+Опциональные (можно позже):
 ```bash
-docker stats freqtrade
-htop
+TELEGRAM_TOKEN=токен_бота
+TELEGRAM_CHAT_ID=id_чата
 ```
 
-## API-ключи биржи
+### 2.2 API-ключи биржи
 
 При создании API-ключей на Binance:
 - ✅ Включи: Spot Trading
@@ -135,10 +145,55 @@ htop
 
 Никогда не создавай ключи с правом вывода.
 
+### 2.3 Override для live
+
+Создай `user_data/config/config.override.json`:
+```json
+{
+    "dry_run": false
+}
+```
+
+### 2.4 Переключение
+
+```bash
+# 1. Остановить dry-run
+docker compose down
+
+# 2. Запустить с override
+# Для этого нужно добавить --config в command docker-compose.yml
+# Это защищённый файл → запроси подтверждение у пользователя
+```
+
+Чтобы фоновый бот (`up -d`) использовал override, нужно изменить `command`
+в `docker-compose.yml`. Это защищённый файл — объясни пользователю зачем
+и получи подтверждение перед изменением.
+
+Добавить в command:
+```yaml
+command: >
+  trade
+  --logfile /freqtrade/user_data/logs/freqtrade.log
+  --db-url sqlite:////freqtrade/user_data/tradesv3.sqlite
+  --config /freqtrade/user_data/config/config.json
+  --config /freqtrade/user_data/config/config.override.json
+  --strategy ИмяСтратегии
+```
+
+### 2.5 Запуск и проверка
+
+```bash
+docker compose up -d
+docker compose logs -f --tail 20
+```
+
+Проверь первые сделки в FreqUI и Telegram (если настроен).
+
 ## Частые ошибки
 
 1. **Открыл 8080 наружу** → любой может видеть и управлять ботом. Только SSH-туннель
 2. **API-ключ с правом вывода** → при компрометации теряешь всё
-3. **Не протестировал dry-run на VPS** → сразу live = проблемы
-4. **Забыл `.env`** → бот стартует в dry-run (безопасно, но не то что хотел)
-5. **Не настроил firewall** → VPS уязвим
+3. **Сразу в live без dry-run на VPS** → непроверенная среда = проблемы
+4. **`docker compose restart` вместо `down + up`** → может не подхватить изменения
+5. **Забыл `docker compose version` после установки** → compose plugin может не стоять
+6. **Смешал обязательные и опциональные секреты в .env** → биржевые ключи ≠ Telegram
