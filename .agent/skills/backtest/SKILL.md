@@ -14,7 +14,16 @@ docker compose run --rm freqtrade backtesting \
   --timerange YYYYMMDD-YYYYMMDD
 ```
 
-Все пути внутри контейнера начинаются с `/freqtrade/`.
+Если есть `config.override.json` (изменённые пары, кошелёк и т.д.) — добавь его:
+```bash
+docker compose run --rm freqtrade backtesting \
+  --config /freqtrade/user_data/config/config.json \
+  --config /freqtrade/user_data/config/config.override.json \
+  --strategy ИмяСтратегии \
+  --timerange YYYYMMDD-YYYYMMDD
+```
+
+Правило: если `config.override.json` существует — всегда передавай оба `--config`.
 
 ## Параметры
 
@@ -22,72 +31,80 @@ docker compose run --rm freqtrade backtesting \
 |----------|----------|--------|
 | `--strategy` | Имя класса стратегии | `SampleStrategy` |
 | `--timerange` | Период тестирования | `20260101-20260401` |
-| `--timeframe` | Таймфрейм (override стратегии) | `1h`, `5m`, `1d` |
 | `--stake-amount` | Размер позиции | `100`, `unlimited` |
 | `--max-open-trades` | Макс. одновременных сделок | `3` |
 | `--strategy-list` | Сравнить несколько стратегий | `Strat1 Strat2` |
 | `--enable-protections` | Включить протекции | — |
+| `--timeframe` | Переопределить таймфрейм стратегии | `1h`, `5m` |
+
+⚠️ `--timeframe` перезаписывает значение из стратегии. Используй только если
+данные за этот таймфрейм уже скачаны — иначе бэктест упадёт.
+Безопаснее менять `timeframe` в самом файле стратегии.
 
 ## Примеры
 
-**Пример 1: Простой бэктест**
+**Простой бэктест (стартовый набор данных):**
 ```bash
 docker compose run --rm freqtrade backtesting \
   --config /freqtrade/user_data/config/config.json \
   --strategy SampleStrategy \
-  --timerange 20260101-20260401
+  --timerange 20260105-20260405
 ```
 
-**Пример 2: Сравнение двух стратегий**
+**Сравнение двух стратегий:**
 ```bash
 docker compose run --rm freqtrade backtesting \
   --config /freqtrade/user_data/config/config.json \
   --strategy-list SampleStrategy MyNewStrategy \
-  --timerange 20260101-20260401
-```
-
-**Пример 3: С override-конфигом**
-```bash
-docker compose run --rm freqtrade backtesting \
-  --config /freqtrade/user_data/config/config.json \
-  --config /freqtrade/user_data/config/config.override.json \
-  --strategy SampleStrategy \
-  --timerange 20260101-20260401
+  --timerange 20260105-20260405
 ```
 
 ## Чтение результатов
 
-Ключевые метрики в выводе:
+Ключевые метрики в выводе бэктеста:
 
-| Метрика | Что значит | Хорошо если |
-|---------|------------|-------------|
-| **Total profit %** | Общая прибыль | > 0% |
-| **Sharpe** | Доходность/риск | > 1.0 |
-| **Sortino** | Как Sharpe, но учитывает только downside | > 1.5 |
-| **Max Drawdown** | Максимальная просадка | < 20% |
-| **Profit factor** | Прибыль/убыток | > 1.5 |
-| **Win Rate** | % выигрышных сделок | > 50% |
-| **Avg Duration** | Средняя длительность сделки | Зависит от стратегии |
-| **SQN** | System Quality Number | > 2.0 отлично |
+| Метрика | Что значит | Как интерпретировать |
+|---------|------------|----------------------|
+| **Total profit %** | Общая прибыль | Сравнивай с Market change — стратегия должна обгонять рынок |
+| **Market change** | Изменение рынка за период | Бенчмарк: "а если бы просто держал?" |
+| **Sharpe** | Доходность / волатильность | Чем выше — тем стабильнее доход |
+| **Sortino** | Как Sharpe, но только downside risk | Полезнее Sharpe для трейдинга |
+| **Max Drawdown** | Максимальная просадка | Сколько ты готов потерять от пика? |
+| **Profit factor** | Сумма прибылей / сумма убытков | > 1.0 значит прибыльная |
+| **Win Rate** | % выигрышных сделок | Низкий win rate не значит плохая стратегия — зависит от risk/reward |
+| **SQN** | System Quality Number | Комплексная оценка качества системы |
+| **Avg Duration** | Средняя длительность сделки | Сильно зависит от таймфрейма и стиля |
+
+Не существует универсальных "хороших" порогов — всё зависит от стиля стратегии,
+рынка и периода. Главный ориентир: **стратегия обгоняет Market change** при
+**приемлемом Max Drawdown** для ученика.
+
+## Результаты в FreqUI
+
+После бэктеста результаты сохраняются в `user_data/backtest_results/`.
+Чтобы увидеть их в FreqUI:
+
+1. Запусти бот: `docker compose up -d`
+2. Открой http://localhost:8080
+3. Перейди в раздел **Backtest** в левом меню
+4. Результаты последнего бэктеста отображаются автоматически
+
+FreqUI показывает: equity curve, список сделок, profit по парам, drawdown graph.
 
 ## Предварительные условия
 
-Перед запуском бэктеста убедись что:
+Перед запуском убедись:
 
-1. **Данные скачаны** для нужных пар и таймфрейма:
-   ```bash
-   docker compose run --rm freqtrade download-data \
-     --config /freqtrade/user_data/config/config.json \
-     --pairs BTC/USDT ETH/USDT \
-     --exchange binance \
-     --days 90 -t 1h
-   ```
+1. **Данные скачаны** за нужный период и таймфрейм (см. skill `data`)
+2. **Таймфрейм данных совпадает** с `timeframe` в стратегии
+3. **Стратегия существует** в `user_data/strategies/`
+4. **Фоновый бот остановлен** (`docker compose down`) — `run` и `up -d` одновременно нельзя
 
-2. **Стратегия существует** в `user_data/strategies/`
-
-3. **Timerange покрыт данными** — если данных нет за указанный период, бэктест выдаст ошибку
+---
 
 ## Hyperopt (оптимизация параметров)
+
+Это продвинутый этап — после того как базовый бэктест работает.
 
 Если стратегия содержит `IntParameter`/`DecimalParameter` с `optimize=True`:
 
@@ -98,18 +115,19 @@ docker compose run --rm freqtrade hyperopt \
   --hyperopt-loss SharpeHyperOptLoss \
   --spaces buy sell \
   --epochs 100 \
-  --timerange 20260101-20260401
+  --timerange 20260105-20260405
 ```
 
 Доступные loss-функции:
-- `SharpeHyperOptLoss` — максимизирует Sharpe ratio (рекомендуется)
+- `SharpeHyperOptLoss` — максимизирует Sharpe (рекомендуется для начала)
 - `SortinoHyperOptLoss` — учитывает только downside volatility
 - `OnlyProfitHyperOptLoss` — только прибыль
 - `MaxDrawDownHyperOptLoss` — минимизирует просадку
 
 ## Частые ошибки
 
-1. **Нет данных** → сначала `download-data`
-2. **Timerange за пределами данных** → уменьшить диапазон
+1. **Нет данных** → сначала `download-data` (skill `data`)
+2. **Timerange за пределами данных** → уменьши диапазон или скачай больше данных
 3. **Стратегия не найдена** → проверь имя класса внутри .py файла
-4. **Мало сделок** → увеличь timerange или проверь условия входа
+4. **Мало сделок** → увеличь timerange или проверь условия входа (слишком жёсткие?)
+5. **Конфликт с бегущим ботом** → `docker compose down` перед `run`
