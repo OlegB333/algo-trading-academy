@@ -1,0 +1,35 @@
+# Algo Trading Academy
+
+# Secrets (NEVER commit)
+.env
+
+# Freqtrade runtime files
+user_data/logs/*
+!user_data/logs/.gitkeep
+user_data/backtest_results/*
+!user_data/backtest_results/.gitkeep
+user_data/tradesv3.sqlite
+user_data/tradesv3.dryrun.sqlite
+user_data/tradesv3.sqlite-shm
+user_data/tradesv3.sqlite-wal
+user_data/config/config.override.json
+
+# Downloaded data (too large for git)
+# Keep only bundled test data
+user_data/data/*/futures/
+user_data/data/*/*.json.gz
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
