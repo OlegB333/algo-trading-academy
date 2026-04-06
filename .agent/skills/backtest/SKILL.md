@@ -26,8 +26,6 @@ docker compose run --rm freqtrade backtesting \
   --timerange YYYYMMDD-YYYYMMDD
 ```
 
-Используй только базовый `config.json`. Файл `config.override.json` — для live-торговли, при бэктесте не нужен.
-
 ## Параметры
 
 | Параметр | Описание | Пример |
