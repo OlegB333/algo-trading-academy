@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Algo Trading Academy — Правила системы
 
 Ты работаешь внутри учебного проекта по алготрейдингу на базе Freqtrade.
