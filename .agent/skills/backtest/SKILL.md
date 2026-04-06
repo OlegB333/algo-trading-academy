@@ -26,16 +26,7 @@ docker compose run --rm freqtrade backtesting \
   --timerange YYYYMMDD-YYYYMMDD
 ```
 
-Если есть `config.override.json` (изменённые пары, кошелёк и т.д.) — добавь его:
-```bash
-docker compose run --rm freqtrade backtesting \
-  --config /freqtrade/user_data/config/config.json \
-  --config /freqtrade/user_data/config/config.override.json \
-  --strategy ИмяСтратегии \
-  --timerange YYYYMMDD-YYYYMMDD
-```
-
-Правило: если `config.override.json` существует — всегда передавай оба `--config`.
+Используй только базовый `config.json`. Файл `config.override.json` — для live-торговли, при бэктесте не нужен.
 
 ## Параметры
 
