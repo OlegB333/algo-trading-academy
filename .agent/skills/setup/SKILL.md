@@ -60,5 +60,8 @@ docker compose ps
 
 > ✅ Проект запущен.
 > FreqUI: http://localhost:8080
+>
+> Откройте эту ссылку в браузере и убедитесь, что веб-интерфейс загружается.
+> Логин: `freqtrader` / Пароль: `freqtrader`
 
 Подставь реальный порт из `.project-context`.
