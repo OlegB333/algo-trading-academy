@@ -14,11 +14,10 @@ services:
       timeout: 10s
       retries: 3
       start_period: 15s
-    # Default command: dry-run trading with FreqUI
+    # Default: webserver mode — FreqUI с бэктестом и визуализацией (модули 1-5)
+    # Для торговли (dry-run/live) используй docker-compose.override.yml (модули 6-7)
     command: >
-      trade
+      webserver
       --logfile /freqtrade/user_data/logs/freqtrade.log
-      --db-url sqlite:////freqtrade/user_data/tradesv3.sqlite
       --config /freqtrade/user_data/config/config.json
-      --strategy SampleStrategy
 

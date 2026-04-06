@@ -113,81 +113,13 @@ docker compose up -d
 
 ## Часть 2: Переход на live
 
-⚠️ **Только с ДВОЙНЫМ подтверждением пользователя.**
-Это отдельный этап, не продолжение dry-run.
+Переключение dry-run → live описано в skill `live`.
+Deployment-скил отвечает только за VPS-инфраструктуру.
 
-### 2.1 Подготовка .env
-
-На VPS создай `.env` из шаблона:
-```bash
-cp .env.example .env
-nano .env
-```
-
-Обязательные для live:
-```bash
-EXCHANGE_KEY=твой_api_key
-EXCHANGE_SECRET=твой_api_secret
-```
-
-Опциональные (можно позже):
-```bash
-TELEGRAM_TOKEN=токен_бота
-TELEGRAM_CHAT_ID=id_чата
-```
-
-### 2.2 API-ключи биржи
-
-При создании API-ключей на Binance:
-- ✅ Включи: Spot Trading
-- ❌ Выключи: Withdraw (вывод средств)
-- ✅ Включи: IP Whitelist (IP твоего VPS)
-
-Никогда не создавай ключи с правом вывода.
-
-### 2.3 Override для live
-
-Создай `user_data/config/config.override.json`:
-```json
-{
-    "dry_run": false
-}
-```
-
-### 2.4 Переключение
-
-```bash
-# 1. Остановить dry-run
-docker compose down
-
-# 2. Запустить с override
-# Для этого нужно добавить --config в command docker-compose.yml
-# Это защищённый файл → запроси подтверждение у пользователя
-```
-
-Чтобы фоновый бот (`up -d`) использовал override, нужно изменить `command`
-в `docker-compose.yml`. Это защищённый файл — объясни пользователю зачем
-и получи подтверждение перед изменением.
-
-Добавить в command:
-```yaml
-command: >
-  trade
-  --logfile /freqtrade/user_data/logs/freqtrade.log
-  --db-url sqlite:////freqtrade/user_data/tradesv3.sqlite
-  --config /freqtrade/user_data/config/config.json
-  --config /freqtrade/user_data/config/config.override.json
-  --strategy ИмяСтратегии
-```
-
-### 2.5 Запуск и проверка
-
-```bash
-docker compose up -d
-docker compose logs -f --tail 20
-```
-
-Проверь первые сделки в FreqUI и Telegram (если настроен).
+Перед переключением в live убедись:
+- `.env` на VPS содержит `EXCHANGE_KEY` и `EXCHANGE_SECRET`
+- API-ключи **без права вывода** (только торговля)
+- IP VPS добавлен в whitelist на бирже
 
 ## Частые ошибки
 
@@ -196,4 +128,3 @@ docker compose logs -f --tail 20
 3. **Сразу в live без dry-run на VPS** → непроверенная среда = проблемы
 4. **`docker compose restart` вместо `down + up`** → может не подхватить изменения
 5. **Забыл `docker compose version` после установки** → compose plugin может не стоять
-6. **Смешал обязательные и опциональные секреты в .env** → биржевые ключи ≠ Telegram
