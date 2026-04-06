@@ -7,7 +7,7 @@ from pandas import DataFrame
 import talib.abstract as ta
 
 
-class SampleStrategy(IStrategy):
+class AcademySampleStrategy(IStrategy):
     """
     Sample strategy using SMA crossover.
     This is a teaching example — NOT for live trading.
