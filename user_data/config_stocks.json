@@ -52,15 +52,15 @@
         }
     ],
     "api_server": {
-        "enabled": false,
+        "enabled": true,
         "listen_ip_address": "0.0.0.0",
         "listen_port": 8080,
         "verbosity": "error",
         "enable_openapi": false,
-        "jwt_secret_key": "freqtrade-imt-dev-key",
-        "CORS_origins": ["http://localhost:8080"],
-        "username": "freqtrade",
-        "password": "freqtrade"
+        "jwt_secret_key": "changeme_generate_a_random_string_here",
+        "CORS_origins": [],
+        "username": "freqtrader",
+        "password": "freqtrader"
     },
     "bot_name": "freqtrade-imt-stocks",
     "initial_state": "running",
