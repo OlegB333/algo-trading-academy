@@ -9,6 +9,8 @@
     "dry_run": true,
     "dry_run_wallet": 100000,
     "cancel_open_orders_on_exit": false,
+    "dataformat_ohlcv": "parquet",
+    "dataformat_trades": "parquet",
     "asset_type": "futures",
     "futures_contracts": [
         {"symbol": "ES", "exchange": "CME"},
