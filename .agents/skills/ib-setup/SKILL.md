@@ -49,4 +49,4 @@ docker compose -f docker-compose.ib.yml logs freqtrade --tail 20
 > Шлюз IB Gateway подключен, бот работает. 
 > Интерфейс FreqUI доступен на `http://localhost:8080`.
 > 
-> *Заметка:* Бот запущен в режиме `dry-run`. В логах вы можете увидеть предупреждение "API interface is currently in Read-Only mode" – это нормально для безопасного режима.
+> *Заметка:* Бот запущен в режиме `dry-run`.
