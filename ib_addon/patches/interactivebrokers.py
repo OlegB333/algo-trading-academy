@@ -336,7 +336,17 @@ class Interactivebrokers(Foreignexchange):
                 logger.warning(f"Could not qualify stock contract {symbol}: {e}")
 
         elif asset_type == "futures":
-            exchange = FUTURES_EXCHANGE_MAP.get(symbol, "CME")
+            exchange = "CME"  # Global default
+            # 1. First check if user explicitly defined the routing in config
+            user_contracts = self.config.get("futures_contracts", [])
+            for c in user_contracts:
+                if c.get("symbol") == symbol:
+                    exchange = c.get("exchange", "CME")
+                    break
+            else:
+                # 2. Fallback to hardcoded internal map if not found in config
+                exchange = FUTURES_EXCHANGE_MAP.get(symbol, "CME")
+                
             contract = Future(symbol, exchange=exchange)
             try:
                 details = self.ib.reqContractDetails(contract)
