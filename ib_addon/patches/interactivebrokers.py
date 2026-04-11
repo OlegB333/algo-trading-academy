@@ -43,11 +43,30 @@ STOCK_MARKET_CLOSE_UTC = datetime.strptime("20:00", "%H:%M").time()  # Summer (E
 
 # Futures exchange mappings
 FUTURES_EXCHANGE_MAP = {
+    # Индексы
     "ES": "CME", "NQ": "CME", "RTY": "CME", "YM": "CBOT",
+    "MES": "CME", "MNQ": "CME", "DJT": "CBOT",
+    # Металлы
     "GC": "COMEX", "SI": "COMEX", "HG": "COMEX",
-    "CL": "NYMEX", "NG": "NYMEX", "RB": "NYMEX",
-    "ZB": "CBOT", "ZN": "CBOT", "ZF": "CBOT",
-    "6E": "CME", "6B": "CME", "6J": "CME",
+    "PL": "NYMEX", "PA": "NYMEX", "MGC": "COMEX", "SIL": "COMEX",
+    # Энергоносители
+    "CL": "NYMEX", "NG": "NYMEX", "RB": "NYMEX", "HO": "NYMEX", "BZ": "NYMEX",
+    # Облигации
+    "ZB": "CBOT", "ZN": "CBOT", "ZF": "CBOT", "ZT": "CBOT",
+    # Валютные фьючерсы
+    "6E": "CME", "6B": "CME", "6J": "CME", "6C": "CME",
+    "6A": "CME", "6N": "CME", "6S": "CME",
+    # Сельхоз
+    "ZC": "CBOT", "ZS": "CBOT", "ZW": "CBOT", "ZM": "CBOT",
+    "ZL": "CBOT", "ZO": "CBOT", "ZR": "CBOT",
+    # Мясо
+    "LE": "CME", "GF": "CME", "HE": "CME",
+    # Софткоммодитиз (NYBOT / ICE)
+    "KC": "NYBOT", "SB": "NYBOT", "CC": "NYBOT", "CT": "NYBOT", "OJ": "NYBOT",
+    # Прочие
+    "DX": "NYBOT", "VX": "CFE", "LBS": "CME",
+    # Европейские (EUREX)
+    "FEI": "EUREX", "FNG": "EUREX",
 }
 
 
