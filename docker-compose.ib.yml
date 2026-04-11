@@ -10,6 +10,7 @@ services:
     env_file: .env
     environment:
       - READ_ONLY_API=no
+      - VNC_SERVER_PASSWORD=algotrading
     ports:
       - "4001:4001"   # Live trading
       - "4002:4002"   # Paper trading
