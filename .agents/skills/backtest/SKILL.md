@@ -76,7 +76,7 @@ docker compose run --rm freqtrade backtesting \
 **ОБЯЗАТЕЛЬНО:** Если файла `config_futures.json` нет в папке, **не проси ученика его создать**. Создай его **самостоятельно**:
 1. Скопируй содержимое базового `config.json`
 2. Измени в нём параметр `"trading_mode": "futures"`
-3. Добавь параметр `"margin_mode": "isolated"` (или `"cross"`)
+3. Добавь параметр `"margin_mode": "isolated"`
 4. Затем сразу запускай бэктест.
 
 ## Чтение результатов

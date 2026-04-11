@@ -46,7 +46,7 @@ docker compose -f docker-compose.ib.yml logs freqtrade --tail 20
 
 > ✅ Интеграция с Interactive Brokers успешно запущена!
 > 
-> Шлюз IB Gateway подключен. 
+> Шлюз IB Gateway подключен, бот работает. 
 > Интерфейс FreqUI доступен на `http://localhost:8080`.
 > 
-> *Заметка:* Бот запущен в безопасном режиме `webserver` (только графики и анализ). Для старта торговли нужно вручную запустить команду `trade`.
+> *Заметка:* Бот запущен в режиме `dry-run`.
