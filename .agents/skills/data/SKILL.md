@@ -38,54 +38,88 @@ docker compose run --rm freqtrade download-data \
   --trading-mode futures
 ```
 
-Если ученик просит скачать данные для **Фьючерсов (отличных от крипты)** (например, S&P 500, Nasdaq через Interactive Brokers):
-Используй конфиг `config_futures.json` и указывай биржу `interactivebrokers`. Пары также пишутся через USD.
+## Скачивание данных с Interactive Brokers (Forex, Акции, Фьючерсы)
 
-**ПРИМЕЧАНИЕ ОБ ИНТЕГРАЦИИ:** Перед скачиванием любых данных с Interactive Brokers (Акции, Форекс, Фьючерсы CME), ты должен быть уверен, что контейнер `ib-gateway` настроен и запущен. Если скачивание падает с ошибкой соединения (Connection Refused), подскажи ученику: *"Похоже, интеграция IB не запущена. Давайте сначала запустим её через настройку IB Gateway"* (согласно навыку `ib-setup`).
+**ПРИМЕЧАНИЕ ОБ ИНТЕГРАЦИИ:** Перед скачиванием любых данных с Interactive Brokers ты должен убедиться, что контейнер `ib-gateway` настроен и запущен (по навыку `ib-setup`). Если скачивание падает с ошибкой `Connection Refused` — подскажи ученику: *"Интеграция IB не запущена. Давайте сначала поднимем IB Gateway."*
 
-**ПРАВИЛО МАРШРУТИЗАЦИИ:** Для IB фьючерсов требуется знать конкретную биржу (CME, CBOT, NYMEX и т.д.).
-Если ученик просит скачать нестандартный тикер (например `HO/USD` или `VX/USD`), и ты не уверен, на какой бирже он торгуется, **ОБЯЗАТЕЛЬНО СПРОСИ УЧЕНИКА**: *"На какой бирже торгуется этот фьючерс (например, NYMEX, CFE)?"*. 
-Получив ответ, **сначала добавь** этот тикер в раздел `futures_contracts` файла `user_data/config_futures.json`:
+### Алгоритм: как определить что и откуда качать
+
+Когда ученик просит скачать данные с IB, ты должен **сам определить** правильный конфиг и тикер. Не проси ученика разбираться в конфигах — это твоя работа!
+
+**Шаг 1.** Определи тип актива по справочной таблице ниже:
+
+| Что просит ученик | Тип актива | Конфиг | Формат пары | Примеры |
+|---|---|---|---|---|
+| Валютные пары (EUR, GBP, JPY...) | `forex` | `config_forex.json` | `EUR/USD`, `GBP/USD` | "скачай евро", "данные по фунту" |
+| Акции (Apple, Tesla, Microsoft...) | `stocks` | `config_stocks.json` | `AAPL/USD`, `TSLA/USD` | "скачай Apple", "данные по Тесла" |
+| Индексы, товары, сырьё | `futures` | `config_futures.json` | `ES/USD`, `GC/USD` | "скачай золото", "данные S&P 500" |
+
+**Шаг 2.** Если актив — фьючерс, определи биржу по этой таблице:
+
+| Ученик говорит | IB тикер | Биржа | Категория |
+|---|---|---|---|
+| S&P 500, ES | `ES` | CME | Индексы |
+| Nasdaq, NQ | `NQ` | CME | Индексы |
+| Russell 2000 | `RTY` | CME | Индексы |
+| Dow Jones, YM | `YM` | CBOT | Индексы |
+| Золото, Gold | `GC` | COMEX | Металлы |
+| Серебро, Silver | `SI` | COMEX | Металлы |
+| Медь, Copper | `HG` | COMEX | Металлы |
+| Нефть, Crude, WTI | `CL` | NYMEX | Энергоносители |
+| Газ, Natural Gas | `NG` | NYMEX | Энергоносители |
+| Бензин, Gasoline | `RB` | NYMEX | Энергоносители |
+| Мазут, Heating Oil | `HO` | NYMEX | Энергоносители |
+| Бонды 30Y | `ZB` | CBOT | Облигации |
+| Бонды 10Y | `ZN` | CBOT | Облигации |
+| Бонды 5Y | `ZF` | CBOT | Облигации |
+| Евро (фьючерс) | `6E` | CME | Валютные фьючерсы |
+| Фунт (фьючерс) | `6B` | CME | Валютные фьючерсы |
+| VIX, Волатильность | `VX` | CFE | Волатильность |
+
+**Шаг 3.** Если тикера **нет в таблице**, **СПРОСИ ученика**: *"На какой бирже торгуется этот фьючерс?"*
+
+**Шаг 4.** Перед скачиванием убедись, что тикер есть в `futures_contracts` файла `config_futures.json`. Если нет — **добавь его сам**:
 ```json
 "futures_contracts": [
-    ...
-    {"symbol": "HO", "exchange": "NYMEX"}
+    {"symbol": "ES", "exchange": "CME"},
+    {"symbol": "GC", "exchange": "COMEX"}
 ]
 ```
-И только после этого запускай скачивание:
-```bash
-docker compose run --rm freqtrade download-data \
-  --config /freqtrade/user_data/config_futures.json \
-  --pairs ES/USD HO/USD \
-  --exchange interactivebrokers \
-  --days 30 \
-  -t 1h
-```
+А также добавь пару в `pair_whitelist` того же конфига (формат `ТИКЕР/USD`).
 
-**ОЧЕНЬ ВАЖНО (IB Futures):** НИКОГДА не добавляй флаг `--trading-mode futures` при скачивании данных с `interactivebrokers`. Этот флаг нужен только для Binance! У IB наш локальный плагин сам переключается в режим фьючерсов благодаря параметру `"asset_type": "futures"` внутри `config_futures.json`. Если добавить флаг в команду — она сломается (ошибка "forex exchange does not support futures").
+### Команды скачивания для IB
 
-Если пары или биржа были изменены через override, добавь его:
-```bash
-docker compose run --rm freqtrade download-data \
-  --config /freqtrade/user_data/config/config.json \
-  --config /freqtrade/user_data/config/config.override.json \
-  --days 90 \
-  -t 1h
-```
-
-Если ученик просит скачать данные для **Форекс (Forex)** или **Акций (Stocks)** через Interactive Brokers:
-Всегда используй соответствующий конфигурационный файл из корня `user_data` и явно указывай биржу `interactivebrokers`:
+**Форекс:**
 ```bash
 docker compose run --rm freqtrade download-data \
   --config /freqtrade/user_data/config_forex.json \
   --pairs EUR/USD GBP/USD \
   --exchange interactivebrokers \
   --days 30 \
-  -t 1h \
-  --trading-mode spot
+  -t 1h
 ```
-*(Для акций используй `--config /freqtrade/user_data/config_stocks.json` и указывай тикеры через USD, например `AAPL/USD`, `MSFT/USD`).*
-В этом случае пары возьмутся из `pair_whitelist` в override.
+
+**Акции:**
+```bash
+docker compose run --rm freqtrade download-data \
+  --config /freqtrade/user_data/config_stocks.json \
+  --pairs AAPL/USD TSLA/USD \
+  --exchange interactivebrokers \
+  --days 30 \
+  -t 1h
+```
+
+**Фьючерсы:**
+```bash
+docker compose run --rm freqtrade download-data \
+  --config /freqtrade/user_data/config_futures.json \
+  --pairs GC/USD ES/USD \
+  --exchange interactivebrokers \
+  --days 30 \
+  -t 1h
+```
+
+**ОЧЕНЬ ВАЖНО (IB):** НИКОГДА не добавляй флаг `--trading-mode futures` и `--trading-mode spot` при скачивании данных с `interactivebrokers`. Наш локальный плагин сам определяет режим через параметр `"asset_type"` внутри соответствующего конфига. Если добавить этот флаг — команда сломается.
 
 ## Данные по сделкам (Trades)
 
