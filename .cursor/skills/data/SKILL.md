@@ -27,14 +27,25 @@ docker compose run --rm freqtrade download-data \
   -t 1h
 ```
 
-Если ученик просит скачать данные для **Фьючерсов**, обязательно добавляй флаг `--trading-mode futures`. Боту нужны специальные файлы (mark prices, funding rates) для симуляции фьючерсного рынка кросс/изолированной маржи.
-**ВАЖНО:** Для фьючерсов названия пар пишутся в формате `BASE/QUOTE:SETTLE` (например, `BTC/USDT:USDT`):
+Если ученик просит скачать данные для **Фьючерсов (Крипта)** (например, Binance Futures), добавляй флаг `--trading-mode futures`. Названия пар пишутся в формате `BASE/QUOTE:SETTLE` (например, `BTC/USDT:USDT`):
 ```bash
 docker compose run --rm freqtrade download-data \
   --config /freqtrade/user_data/config/config.json \
   --pairs BTC/USDT:USDT ETH/USDT:USDT \
   --exchange binance \
   --days 90 \
+  -t 1h \
+  --trading-mode futures
+```
+
+Если ученик просит скачать данные для **Фьючерсов CME** (например, S&P 500, Nasdaq через Interactive Brokers):
+Используй конфиг `config_futures.json` и указывай биржу `interactivebrokers`. Пары также пишутся через USD.
+```bash
+docker compose run --rm freqtrade download-data \
+  --config /freqtrade/user_data/config_futures.json \
+  --pairs ES/USD NQ/USD \
+  --exchange interactivebrokers \
+  --days 30 \
   -t 1h \
   --trading-mode futures
 ```
