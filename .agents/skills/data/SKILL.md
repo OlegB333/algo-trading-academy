@@ -59,9 +59,10 @@ docker compose run --rm freqtrade download-data \
   --pairs ES/USD HO/USD \
   --exchange interactivebrokers \
   --days 30 \
-  -t 1h \
-  --trading-mode futures
+  -t 1h
 ```
+
+**ОЧЕНЬ ВАЖНО (IB Futures):** НИКОГДА не добавляй флаг `--trading-mode futures` при скачивании данных с `interactivebrokers`. Этот флаг нужен только для Binance! У IB наш локальный плагин сам переключается в режим фьючерсов благодаря параметру `"asset_type": "futures"` внутри `config_futures.json`. Если добавить флаг в команду — она сломается (ошибка "forex exchange does not support futures").
 
 Если пары или биржа были изменены через override, добавь его:
 ```bash
