@@ -59,8 +59,9 @@
         "username": "freqtrade",
         "password": "freqtrade"
     },
-    "bot_name": "freqtrade-imt-dev",
-    "initial_state": "running",
+    "bot_name": "algo-academy-forex",
+    "dataformat_ohlcv": "parquet",
+    "initial_state": "stopped",
     "force_entry_enable": false,
     "internals": {
         "process_throttle_secs": 5
