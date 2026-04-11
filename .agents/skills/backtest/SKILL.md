@@ -77,7 +77,8 @@ docker compose run --rm freqtrade backtesting \
 1. Скопируй содержимое базового `config.json`
 2. Измени в нём параметр `"trading_mode": "futures"`
 3. Добавь параметр `"margin_mode": "isolated"`
-4. Затем сразу запускай бэктест.
+4. Измени названия пар в `pair_whitelist` на фьючерсный стандарт (добавь суффикс `:USDT`, например `BTC/USDT:USDT`)
+5. Затем сразу запускай бэктест.
 
 ## Чтение результатов
 
