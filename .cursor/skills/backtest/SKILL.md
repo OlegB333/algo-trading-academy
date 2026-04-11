@@ -60,6 +60,20 @@ docker compose run --rm freqtrade backtesting \
   --timerange 20260105-20260405
 ```
 
+## Бэктест Фьючерсов
+
+В отличие от скачивания данных (`download-data`), команда `backtesting` **не имеет** аргумента `--trading-mode`. 
+Чтобы протестировать фьючерсы, `trading_mode: "futures"` должно быть явно прописано в **конфигурационном файле**.
+
+Если ученик хочет бэктестить фьючерсы, убедись, что используется правильный конфиг (например, `config_futures.json`), и подставь его:
+```bash
+docker compose run --rm freqtrade backtesting \
+  --config /freqtrade/user_data/config/config_futures.json \
+  --strategy ИмяСтратегии \
+  --timerange YYYYMMDD-YYYYMMDD
+```
+Если такого файла нет — подскажи ученику, что нужно создать конфигурацию для фьючерсов.
+
 ## Чтение результатов
 
 Ключевые метрики в выводе бэктеста:
