@@ -143,7 +143,11 @@ docker compose logs -f --tail 50
    - **macOS / Linux:** `export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:~/.local/bin`
    - **Windows (PowerShell):** `$env:Path += ";C:\Program Files\Docker\Docker\resources\bin;C:\Program Files\Git\cmd"`
 2. Выполни ту же команду ещё раз.
-3. Только если после этого команда всё равно не найдена, сообщай ученику, что программу нужно установить или запустить (например, открыть Docker Desktop).
+3. Если команда всё ещё не найдена, но ученик утверждает, что она установлена, попробуй найти её:
+   - **macOS:** используй быстрый Spotlight поиск (`mdfind -name "docker" | grep bin`) или проверь `/Applications/Docker.app/Contents/Resources/bin`
+   - **Linux:** ищи в `find /opt /snap ~/.local -name docker -type f -executable 2>/dev/null`
+   - Либо прямо спроси у ученика путь к установленной программе.
+4. Только если все попытки найти программу исчерпаны, сообщи, что её нужно установить или запустить.
 
 ## Проверка ОС
 
