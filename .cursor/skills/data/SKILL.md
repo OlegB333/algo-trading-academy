@@ -38,12 +38,23 @@ docker compose run --rm freqtrade download-data \
   --trading-mode futures
 ```
 
-Если ученик просит скачать данные для **Фьючерсов CME** (например, S&P 500, Nasdaq через Interactive Brokers):
+Если ученик просит скачать данные для **Фьючерсов (отличных от крипты)** (например, S&P 500, Nasdaq через Interactive Brokers):
 Используй конфиг `config_futures.json` и указывай биржу `interactivebrokers`. Пары также пишутся через USD.
+
+**ПРАВИЛО МАРШРУТИЗАЦИИ:** Для IB фьючерсов требуется знать конкретную биржу (CME, CBOT, NYMEX и т.д.).
+Если ученик просит скачать нестандартный тикер (например `HO/USD` или `VX/USD`), и ты не уверен, на какой бирже он торгуется, **ОБЯЗАТЕЛЬНО СПРОСИ УЧЕНИКА**: *"На какой бирже торгуется этот фьючерс (например, NYMEX, CFE)?"*. 
+Получив ответ, **сначала добавь** этот тикер в раздел `futures_contracts` файла `user_data/config_futures.json`:
+```json
+"futures_contracts": [
+    ...
+    {"symbol": "HO", "exchange": "NYMEX"}
+]
+```
+И только после этого запускай скачивание:
 ```bash
 docker compose run --rm freqtrade download-data \
   --config /freqtrade/user_data/config_futures.json \
-  --pairs ES/USD NQ/USD \
+  --pairs ES/USD HO/USD \
   --exchange interactivebrokers \
   --days 30 \
   -t 1h \
