@@ -36,10 +36,8 @@ services:
     depends_on:
       ib-gateway:
         condition: service_healthy
-    # Default: Forex dry-run. Override with:
-    #   docker compose run freqtrade trade --config /freqtrade/user_data/config_stocks.json ...
+    # Default: Webserver mode. Override with:
+    #   docker-compose.override.yml for live trading
     command: >
-      trade
+      webserver
       --config /freqtrade/user_data/config_forex.json
-      --strategy AcademySampleStrategy
-      --dry-run
