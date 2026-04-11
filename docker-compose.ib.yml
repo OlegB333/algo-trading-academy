@@ -8,6 +8,8 @@ services:
     container_name: ib-gateway
     restart: unless-stopped
     env_file: .env
+    environment:
+      - READ_ONLY_API=no
     ports:
       - "4001:4001"   # Live trading
       - "4002:4002"   # Paper trading
