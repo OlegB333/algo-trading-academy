@@ -1,0 +1,42 @@
+# Freqtrade + Interactive Brokers — Multi-Asset Trading
+# =====================================================
+
+services:
+  # IB Gateway — headless TWS bridge
+  ib-gateway:
+    image: ghcr.io/gnzsnz/ib-gateway:stable
+    container_name: ib-gateway
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "4001:4001"   # Live trading
+      - "4002:4002"   # Paper trading
+      - "5900:5900"   # VNC (debug only)
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/4002' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Freqtrade with IB addon
+  freqtrade:
+    build:
+      context: ./ib_addon
+      dockerfile: Dockerfile
+    container_name: freqtrade-ib
+    restart: unless-stopped
+    volumes:
+      - ./user_data:/freqtrade/user_data
+    ports:
+      - "8080:8080"   # FreqUI
+    depends_on:
+      ib-gateway:
+        condition: service_healthy
+    # Default: Forex dry-run. Override with:
+    #   docker compose run freqtrade trade --config /freqtrade/user_data/config_stocks.json ...
+    command: >
+      trade
+      --config /freqtrade/user_data/config_forex.json
+      --strategy AcademySampleStrategy
+      --dry-run

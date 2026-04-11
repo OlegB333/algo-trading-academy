@@ -1,0 +1,74 @@
+{
+    "trading_mode": "spot",
+    "margin_mode": "",
+    "max_open_trades": 3,
+    "stake_currency": "USD",
+    "stake_amount": 5000,
+    "tradable_balance_ratio": 0.99,
+    "fiat_display_currency": "USD",
+    "dry_run": true,
+    "dry_run_wallet": 100000,
+    "cancel_open_orders_on_exit": false,
+    "asset_type": "futures",
+    "futures_contracts": [
+        {"symbol": "ES", "exchange": "CME"},
+        {"symbol": "NQ", "exchange": "CME"}
+    ],
+    "exchange": {
+        "name": "interactivebrokers",
+        "key": "",
+        "secret": "",
+        "ccxt_sync_config": {},
+        "ccxt_async_config": {},
+        "pair_whitelist": [
+            "ES/USD",
+            "NQ/USD"
+        ],
+        "pair_blacklist": []
+    },
+    "entry_pricing": {
+        "price_side": "same",
+        "use_order_book": false,
+        "order_book_top": 1,
+        "price_last_balance": 0.0,
+        "check_depth_of_market": {
+            "enabled": false,
+            "bids_to_ask_delta": 1
+        }
+    },
+    "exit_pricing": {
+        "price_side": "same",
+        "use_order_book": false,
+        "order_book_top": 1
+    },
+    "order_types": {
+        "entry": "limit",
+        "exit": "limit",
+        "stoploss": "market",
+        "stoploss_on_exchange": false
+    },
+    "pairlists": [
+        {
+            "method": "StaticPairList"
+        }
+    ],
+    "api_server": {
+        "enabled": false,
+        "listen_ip_address": "0.0.0.0",
+        "listen_port": 8080,
+        "verbosity": "error",
+        "username": "freqtrade",
+        "password": "freqtrade",
+        "jwt_secret_key": "some_secret_key"
+    },
+    "bot_name": "freqtrade-imt-futures",
+    "initial_state": "running",
+    "force_entry_enable": false,
+    "internals": {
+        "process_throttle_secs": 5
+    },
+    "timeframe": "1h",
+    "ib_host": "ib-gateway",
+    "ib_paper_port": 4004,
+    "ib_client_id": 5
+}
