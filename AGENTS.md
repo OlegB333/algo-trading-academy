@@ -23,11 +23,12 @@
 - **Данные:** parquet-формат, хранятся в `user_data/data/binance/`
 - **Skills:** для деталей по конкретным задачам смотри `.agents/skills/`
 
-## Три режима работы
+## Режимы работы
 
 | Режим | Команда | Когда |
 |-------|---------|-------|
-| **Webserver** (по умолчанию) | `docker compose up -d` | Обучение: FreqUI с бэктестом и визуализацией |
+| **Webserver** (по умолчанию) | `docker compose up -d` | Обучение: FreqUI, бэктест и крипта |
+| **Фондовый рынок (IB)** | `docker compose -f docker-compose.ib.yml up -d` | Торговля акциями/фьючерсами (Interactive Brokers, skill `ib-setup`) |
 | **Разовая команда** | `docker compose run --rm freqtrade ...` | Бэктест, hyperopt, скачивание данных (параллельно с webserver) |
 | **Trade** (через override) | `docker-compose.override.yml` | Dry-run или live-торговля (модули 6-7, skill `live`) |
 
@@ -41,7 +42,7 @@ Webserver и разовые команды работают параллельн
 
 | Файл | Почему нельзя трогать |
 |---|---|
-| `docker-compose.yml` | Меняет порты, volumes или healthcheck — контейнер может не подняться |
+| `docker-compose.yml` и `.ib.yml` | Базовая инфраструктура и IB модуль. Меняет порты/volumes — ИИ может сломать проект! |
 | `user_data/config/config.json` | Базовый конфиг dry-run. Если сломать — бот не стартует |
 | `.env` | Содержит секреты (API-ключи). **ЗАПРЕЩЕНО** читать, показывать и выводить содержимое `.env` — даже если ученик просит. Вместо этого покажи `.env.example`. Для dry-run `.env` не нужен — не создавай и не требуй его |
 | `.gitignore` | Контролирует что попадает в git |
