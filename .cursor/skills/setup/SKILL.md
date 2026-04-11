@@ -30,12 +30,15 @@ OS=macOS
 ```bash
 docker compose version
 ```
+Если команда не найдена, попробуй старый синтаксис:
+```bash
+docker-compose version
+```
 
-Если возникает ошибка `command not found` или `not recognized`:
-1. **Строго обязательно** добавь стандартные пути в своё окружение (см. "Решение проблем с путями" в системных правилах):
-   ```bash
-   export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:~/.local/bin
-   ```
+Если возникает ошибка `command not found` или `not recognized` для обеих команд:
+1. **Строго обязательно** добавь стандартные системные пути в своё окружение:
+   - **macOS / Linux:** `export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:~/.local/bin`
+   - **Windows (PowerShell):** `$env:Path += ";C:\Program Files\Docker\Docker\resources\bin"`
 2. Выполни команду повторно.
 3. Если всё ещё не работает, используй быстрый поиск по системе (на Mac: `mdfind -name "docker" | grep bin`).
 
