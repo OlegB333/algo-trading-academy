@@ -138,10 +138,11 @@ docker compose logs -f --tail 50
 
 ## Решение проблем с путями (PATH)
 
-Если нужная команда (например, `docker` или `git`) не найдена (ошибка `command not found`), **не спеши сообщать ученику об её отсутствии**.
-1. Сначала добавь стандартные пути `macOS` и `Linux` в своё временное окружение перед выполнением команды:
-   `export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin`
-2. Выполни ту же команду (например, `export PATH=... && docker compose version`).
+Если нужная команда (например, `docker` или `git`) не найдена (ошибка `command not found` или `not recognized`), **не спеши сообщать ученику об её отсутствии**.
+1. Сначала добавь стандартные системные пути в своё временное окружение перед выполнением команды:
+   - **macOS / Linux:** `export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:~/.local/bin`
+   - **Windows (PowerShell):** `$env:Path += ";C:\Program Files\Docker\Docker\resources\bin;C:\Program Files\Git\cmd"`
+2. Выполни ту же команду ещё раз.
 3. Только если после этого команда всё равно не найдена, сообщай ученику, что программу нужно установить или запустить (например, открыть Docker Desktop).
 
 ## Проверка ОС
