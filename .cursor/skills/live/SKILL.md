@@ -58,6 +58,8 @@ services:
 
 Замени `ИмяСтратегии` на реальное имя стратегии ученика.
 
+**ОБЯЗАТЕЛЬНО ДЛЯ ФЬЮЧЕРСОВ:** Если стратегия предназначена для фьючерсов (`can_short = True`), в секции `command` замени путь конфига на `--config /freqtrade/user_data/config/config_futures.json`. Если этого файла еще нет, сгенерируй его (изменив `trading_mode: futures`, `margin_mode: isolated` и добавив `:USDT` к парам). И также измени `--db-url` на `sqlite:////freqtrade/user_data/tradesv3_futures.sqlite` во избежание конфликтов баз данных!
+
 ## Шаг 2: Config override (только для live!)
 
 Для **dry-run** дополнительный конфиг **не нужен** — `dry_run: true` уже стоит

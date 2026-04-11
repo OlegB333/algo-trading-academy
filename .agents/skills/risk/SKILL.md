@@ -134,6 +134,7 @@ docker compose run --rm freqtrade backtesting \
   --enable-protections \
   --timerange 20260105-20260405
 ```
+*(Для фьючерсов не забудь подставить `config_futures.json`)*
 
 Без `--enable-protections` протекции игнорируются в бэктесте.
 

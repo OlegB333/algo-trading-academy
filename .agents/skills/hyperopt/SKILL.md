@@ -88,6 +88,8 @@ docker compose run --rm freqtrade hyperopt \
   --timerange 20260105-20260405
 ```
 
+**ОБЯЗАТЕЛЬНО ДЛЯ ФЬЮЧЕРСОВ:** Если стратегия для фьючерсов, в качестве первого (базового) конфига **передавай `config_futures.json`**, а не `config.json`. Если `config_futures.json` не существует — создай его, скопировав `config.json` и установив `trading_mode: futures`, `margin_mode: isolated`, а также добавив суффикс `:USDT` ко всем парам в `pair_whitelist`.
+
 ## Параметры
 
 | Параметр | Описание | Рекомендация |
