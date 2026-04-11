@@ -56,8 +56,8 @@
         "enable_openapi": false,
         "jwt_secret_key": "freqtrade-imt-dev-key",
         "CORS_origins": ["http://localhost:8080"],
-        "username": "freqtrade",
-        "password": "freqtrade"
+        "username": "freqtrader",
+        "password": "freqtrader"
     },
     "bot_name": "algo-academy-forex",
     "dataformat_ohlcv": "parquet",
