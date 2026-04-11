@@ -64,19 +64,6 @@ docker compose run --rm freqtrade download-data \
 ```
 *(Для фьючерсов — так же, как и всегда, не забудь `--trading-mode futures` и суффикс `:USDT` к парам).*
 
-### Конвертация Trades в OHLCV свечи
-
-Стандартный бэктест во Freqtrade не умеет работать напрямую с сырыми сделками (если только это не tick-базовый анализ ленты). Поэтому после скачивания `--dl-trades`, **обязательно** сконвертируй сделки в нужные таймфреймы свечей с помощью `trades-to-ohlcv`:
-
-```bash
-docker compose run --rm freqtrade trades-to-ohlcv \
-  --config /freqtrade/user_data/config/config.json \
-  --pairs BTC/USDT \
-  --exchange binance \
-  -t 1m 5m 15m 1h \
-  --days 5
-```
-После этого в папке `data/binance/` появятся `.parquet` файлы свечей высшего качества (собранные из реальных тиков).
 
 ## Параметры
 
