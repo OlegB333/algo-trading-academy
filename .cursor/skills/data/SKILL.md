@@ -47,6 +47,19 @@ docker compose run --rm freqtrade download-data \
   --days 90 \
   -t 1h
 ```
+
+Если ученик просит скачать данные для **Форекс (Forex)** или **Акций (Stocks)** через Interactive Brokers:
+Всегда используй соответствующий конфигурационный файл из корня `user_data` и явно указывай биржу `interactivebrokers`:
+```bash
+docker compose run --rm freqtrade download-data \
+  --config /freqtrade/user_data/config_forex.json \
+  --pairs EUR/USD GBP/USD \
+  --exchange interactivebrokers \
+  --days 30 \
+  -t 1h \
+  --trading-mode spot
+```
+*(Для акций используй `--config /freqtrade/user_data/config_stocks.json` и указывай тикеры через USD, например `AAPL/USD`, `MSFT/USD`).*
 В этом случае пары возьмутся из `pair_whitelist` в override.
 
 ## Данные по сделкам (Trades)
