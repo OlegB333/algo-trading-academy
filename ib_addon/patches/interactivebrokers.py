@@ -984,6 +984,53 @@ class Interactivebrokers(Foreignexchange):
         logger.info("Markets reloaded successfully.")
         return self.markets
 
+    def get_leverage_tiers(self) -> dict:
+        """
+        Return the leverage tiers for the pairs.
+        Required by recent Freqtrade versions during backtest initialization for futures.
+        """
+        # Return a generic wide tier for all pairs
+        tiers = {}
+        if hasattr(self, "markets") and self.markets:
+            for pair in self.markets:
+                tiers[pair] = [{
+                    "tier": 1,
+                    "minNotional": 0,
+                    "maxNotional": 999999999,
+                    "maintenanceMarginRate": 0.0,
+                    "maxLeverage": self.get_max_leverage(pair, 1.0)
+                }]
+        else:
+            # If no markets loaded yet, just use whitelist
+            pairs = self.config.get("exchange", {}).get("pair_whitelist", [])
+            for pair in pairs:
+                 tiers[pair] = [{
+                    "tier": 1,
+                    "minNotional": 0,
+                    "maxNotional": 999999999,
+                    "maintenanceMarginRate": 0.0,
+                    "maxLeverage": 100.0
+                }]
+
+        # Inject into Freqtrade core property
+        self._leverage_tiers = tiers
+        return tiers
+
+    def load_leverage_tiers(self) -> None:
+        self.get_leverage_tiers()
+
+    def combine_funding_and_mark(self, funding_rates: Any, mark_rates: Any, *args, **kwargs) -> Any:
+        import pandas as pd
+        if isinstance(funding_rates, pd.DataFrame) and not funding_rates.empty:
+            return funding_rates
+        if isinstance(mark_rates, pd.DataFrame) and not mark_rates.empty:
+            return mark_rates
+        return pd.DataFrame(columns=['date', 'open', 'high', 'low', 'close', 'volume', 'funding_rate', 'mark_price'])
+
+    def calculate_funding_fees(self, *args, **kwargs) -> float:
+        """Mock funding fees calculation for futures backtesting"""
+        return 0.0
+
     def get_max_leverage(self, pair: str, stake_amount: float) -> float:
         """
         Return the max leverage for a given pair.
@@ -1160,7 +1207,7 @@ class Interactivebrokers(Foreignexchange):
         )
         return df
 
-    def refresh_latest_ohlcv(self, pairs: list) -> None:
+    def refresh_latest_ohlcv(self, pairs: list, *args, **kwargs) -> Any:
         """
         Refresh the latest OHLCV data for the given pairs.
         If the market is closed, sleep until 5 minutes before it opens and inform the user.
@@ -1197,6 +1244,8 @@ class Interactivebrokers(Foreignexchange):
                     logger.warning(f"No OHLCV data refreshed for {pair}/{timeframe}")
             except Exception as e:
                 logger.error(f"Failed to refresh latest OHLCV for {pair}: {e}")
+
+        return dict(self.latest_ohlcv)
 
     def klines(
         self,
@@ -2051,16 +2100,18 @@ class Interactivebrokers(Foreignexchange):
         Validate that the requested trading and margin modes are supported.
         Interactive Brokers forex implementation currently uses 'spot' trading.
         """
-        # Forex in this implementation is treated as spot trading
-        if trading_mode and str(trading_mode).lower() != "spot":
+        # Forex in this implementation is treated as spot trading, but we allow futures now
+        t_mode = str(trading_mode).lower() if trading_mode else "spot"
+        if t_mode not in ["spot", "futures"]:
             from freqtrade.exceptions import OperationalException
 
             raise OperationalException(
-                f"Interactive Brokers forex exchange does not support {trading_mode} trading mode."
+                f"Interactive Brokers exchange does not support {trading_mode} trading mode."
             )
 
-        # In this implementation, margin mode is set to NONE
-        if margin_mode and str(margin_mode).lower() != "none":
+        m_mode = str(margin_mode).lower() if margin_mode else "none"
+        valid_margins = ["none", "isolated", "cross", ""]
+        if m_mode not in valid_margins:
             from freqtrade.exceptions import OperationalException
 
             raise OperationalException(

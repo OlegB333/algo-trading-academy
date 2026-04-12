@@ -10,7 +10,10 @@ class Foreignexchange:
         self.config = config
         self.validate = validate
         self.exchange_config = exchange_config
-        self.load_leverage_tiers = load_leverage_tiers
+        self._leverage_tiers = {}
+        # Call the method if it's supported
+        if hasattr(self, 'get_leverage_tiers'):
+            self.get_leverage_tiers()
         logger.info("Foreignexchange retrieved successfully.")
 
     @property
