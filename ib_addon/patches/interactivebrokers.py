@@ -984,6 +984,23 @@ class Interactivebrokers(Foreignexchange):
         logger.info("Markets reloaded successfully.")
         return self.markets
 
+    def get_max_leverage(self, pair: str, stake_amount: float) -> float:
+        """
+        Return the max leverage for a given pair.
+        Required by recent Freqtrade versions during backtest stake size calculation.
+        """
+        config_mode = self.config.get("trading_mode", "spot") if hasattr(self, "config") else "spot"
+        is_futures = False
+        if isinstance(config_mode, str) and config_mode.lower() == "futures":
+            is_futures = True
+        elif hasattr(config_mode, "name") and config_mode.name == "FUTURES":
+            is_futures = True
+
+        if is_futures:
+            # Look for max_leverage in the exchange config section, default to 100x if missing
+            return float(self.config.get("exchange", {}).get("max_leverage", 100.0))
+        return 1.0
+
     def get_fee(self, symbol: str, now: Any = None, taker_or_maker: str = "maker") -> float:
         maker_fee = 0.0001
         taker_fee = 0.0002
