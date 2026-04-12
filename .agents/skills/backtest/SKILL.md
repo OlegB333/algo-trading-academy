@@ -60,25 +60,17 @@ docker compose run --rm freqtrade backtesting \
   --timerange 20260105-20260405
 ```
 
-## Бэктест Фьючерсов
+## Бэктест Фьючерсов на Крипто
 
-В отличие от скачивания данных (`download-data`), команда `backtesting` **не имеет** аргумента `--trading-mode`. 
-Чтобы протестировать фьючерсы, `trading_mode: "futures"` должно быть явно прописано в **конфигурационном файле**.
-
-Если ученик хочет бэктестить фьючерсы, убедись, что используется правильный конфиг (например, `config_futures.json`), и подставь его:
+Для фьючерсов на Binance всегда используй выделенный конфигурационный файл (передавай его явно):
 ```bash
 docker compose run --rm freqtrade backtesting \
-  --config /freqtrade/user_data/config/config_futures.json \
+  --config /freqtrade/user_data/config/config_crypto_futures.json \
   --strategy ИмяСтратегии \
   --timerange YYYYMMDD-YYYYMMDD
 ```
 
-**ОБЯЗАТЕЛЬНО:** Если файла `config_futures.json` нет в папке, **не проси ученика его создать**. Создай его **самостоятельно**:
-1. Скопируй содержимое базового `config.json`
-2. Измени в нём параметр `"trading_mode": "futures"`
-3. Добавь параметр `"margin_mode": "isolated"`
-4. Измени названия пар в `pair_whitelist` на фьючерсный стандарт (добавь суффикс `:USDT`, например `BTC/USDT:USDT`)
-5. Затем сразу запускай бэктест.
+Не нужно создавать или менять файл вручную — он уже настроен (spot->futures) и лежит в папке `/freqtrade/user_data/config/config_crypto_futures.json`.
 
 ## Как объяснять результаты ученику
 
@@ -101,10 +93,9 @@ docker compose run --rm freqtrade backtesting \
 - Список пар из `--pairs` (если указаны явно) или из `pair_whitelist` в конфиге
 
 **Шаг 2.** Определи источник данных по конфигу:
-- `config.json` → Binance, папка `data/binance/`
-- `config_forex.json` → IB, папка `data/interactivebrokers/`
-- `config_stocks.json` → IB, папка `data/interactivebrokers/`
-- `config_futures.json` → IB, папка `data/interactivebrokers/`
+- `config.json` → Спот Binance, папка `data/binance/`
+- `config_crypto_futures.json` → Фьючерсы Binance, папка `data/binance/`
+- `config_forex.json`, `config_stocks.json`, `config_futures.json` (в корне `user_data/`) → Interactive Brokers, папка `data/interactivebrokers/`
 
 **Шаг 3.** Проверь наличие файлов данных для каждой пары:
 - Файлы лежат в `user_data/data/<exchange>/` в формате `ПАРА-ТАЙМФРЕЙМ.parquet` (или `.feather`)
