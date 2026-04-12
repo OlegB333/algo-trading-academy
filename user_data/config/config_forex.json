@@ -3,11 +3,11 @@
     "margin_mode": "",
     "max_open_trades": 3,
     "stake_currency": "USD",
-    "stake_amount": 1000,
+    "stake_amount": 30000,
     "tradable_balance_ratio": 0.99,
     "fiat_display_currency": "USD",
     "dry_run": true,
-    "dry_run_wallet": 10000,
+    "dry_run_wallet": 100000,
     "cancel_open_orders_on_exit": false,
     "exchange": {
         "name": "interactivebrokers",

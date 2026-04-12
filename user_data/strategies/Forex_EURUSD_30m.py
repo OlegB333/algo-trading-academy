@@ -1,6 +1,7 @@
 from freqtrade.strategy import IStrategy
 from pandas import DataFrame
 import talib.abstract as ta
+import freqtrade.vendor.qtpylib.indicators as qtpylib
 
 class Forex_EURUSD_30m(IStrategy):
     """
@@ -38,8 +39,11 @@ class Forex_EURUSD_30m(IStrategy):
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        print(f"DEBUG Forex DataFrame len: {len(dataframe)}")
-        dataframe.loc[:, 'enter_long'] = 1
+        # Long entry: RSI crosses above 30
+        dataframe.loc[
+            (qtpylib.crossed_above(dataframe['rsi'], 30)),
+            'enter_long'
+        ] = 1
         return dataframe
 
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
