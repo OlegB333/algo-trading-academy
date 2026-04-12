@@ -902,13 +902,20 @@ class Interactivebrokers(Foreignexchange):
 
         if asset_type == "forex":
             forex_pairs = [
-                ("EUR", "USD"), ("GBP", "USD"), ("USD", "JPY"),
-                ("AUD", "USD"), ("USD", "CAD"), ("USD", "CHF"),
-                ("NZD", "USD"), ("EUR", "GBP"), ("EUR", "JPY"),
-                ("GBP", "JPY"), ("EUR", "AUD"), ("USD", "CNH"),
-                ("USD", "MXN"), ("EUR", "CAD"), ("AUD", "JPY"),
-                ("GBP", "CAD"), ("AUD", "CAD"), ("EUR", "NZD"),
-                ("GBP", "AUD"), ("USD", "TRY"),
+                ("EUR", "USD"), ("USD", "JPY"), ("GBP", "USD"), ("USD", "CHF"),
+                ("AUD", "USD"), ("USD", "CAD"), ("NZD", "USD"),
+                ("EUR", "JPY"), ("EUR", "GBP"), ("GBP", "JPY"), ("EUR", "CHF"),
+                ("EUR", "CAD"), ("EUR", "AUD"), ("GBP", "CHF"), ("GBP", "CAD"),
+                ("GBP", "AUD"), ("AUD", "JPY"), ("AUD", "CAD"), ("AUD", "CHF"),
+                ("CAD", "JPY"), ("CHF", "JPY"), ("NZD", "JPY"), ("NZD", "CAD"),
+                ("NZD", "CHF"), ("AUD", "NZD"), ("EUR", "NZD"), ("GBP", "NZD"),
+                ("USD", "SEK"), ("USD", "NOK"), ("USD", "DKK"), ("USD", "SGD"),
+                ("USD", "HKD"), ("USD", "MXN"), ("USD", "ZAR"), ("USD", "PLN"),
+                ("USD", "CZK"), ("USD", "HUF"), ("USD", "TRY"), ("USD", "CNH"),
+                ("USD", "KRW"), ("USD", "INR"), ("EUR", "SEK"), ("EUR", "NOK"),
+                ("EUR", "DKK"), ("EUR", "PLN"), ("EUR", "CZK"), ("EUR", "HUF"),
+                ("EUR", "TRY"), ("USD", "THB"), ("CAD", "CHF"), ("USD", "ILS"),
+                ("USD", "RON"), ("GBP", "SGD"),
             ]
             for base, quote in forex_pairs:
                 pair = f"{base}/{quote}"
@@ -916,8 +923,17 @@ class Interactivebrokers(Foreignexchange):
 
         elif asset_type == "stocks":
             stock_symbols = self.config.get("stock_symbols", [
-                "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA",
-                "JPM", "V", "JNJ", "WMT", "PG", "DIS", "NFLX", "INTC",
+                "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "NVDA", "BRK.B",
+                "LLY", "UNH", "XOM", "V", "JPM", "JNJ", "WMT", "PG", "MA", "ORCL",
+                "CVX", "HD", "MRK", "KO", "PEP", "COST", "ABBV", "BAC", "ADBE",
+                "CRM", "TMO", "AVGO", "NFLX", "AMD", "DIS", "ACN", "NKE", "TXN",
+                "DHR", "VZ", "COP", "PFE", "CMCSA", "QCOM", "WFC", "NEE", "PM",
+                "INTC", "LIN", "RTX", "T", "UNP", "LOW", "IBM", "SPGI", "CAT",
+                "INTU", "GS", "MDT", "BKNG", "GILD", "AXP", "HON", "SYK", "DE",
+                "ISRG", "NOW", "BLK", "GE", "AMT", "ELV", "VRTX", "CI", "SLB",
+                "MMC", "PLD", "C", "SO", "ZTS", "MDLZ", "MO", "CB", "REGN", "DUK",
+                "FDX", "PGR", "AON", "EMR", "BSX", "ITW", "EOG", "CSX", "CL", "GM",
+                "MCD", "USB", "NSC", "MMM", "APD", "SBUX", "TGT", "PSA", "ADI",
             ])
             for symbol in stock_symbols:
                 pair = f"{symbol}/USD"
@@ -926,19 +942,20 @@ class Interactivebrokers(Foreignexchange):
                 )
 
         elif asset_type == "futures":
-            futures_contracts = self.config.get("futures_contracts", [
-                {"symbol": "ES", "exchange": "CME"},
-                {"symbol": "NQ", "exchange": "CME"},
-                {"symbol": "GC", "exchange": "COMEX"},
-                {"symbol": "CL", "exchange": "NYMEX"},
-                {"symbol": "ZB", "exchange": "CBOT"},
-            ])
-            for fc in futures_contracts:
-                sym = fc["symbol"]
+            # Build markets from ALL known futures (hardcoded map + user config)
+            # This eliminates the need for manual whitelist management
+            all_futures = {}
+            # 1. Start with all tickers from the hardcoded exchange map
+            for sym, exch in FUTURES_EXCHANGE_MAP.items():
+                all_futures[sym] = exch
+            # 2. Override/extend with user-defined contracts from config
+            for fc in self.config.get("futures_contracts", []):
+                all_futures[fc["symbol"]] = fc.get("exchange", "CME")
+            # 3. Build market entries
+            for sym, exch in all_futures.items():
                 pair = f"{sym}/USD"
                 markets[pair] = self._make_market_entry(
-                    pair, sym, "USD", sec_type="FUT",
-                    exchange=fc.get("exchange", FUTURES_EXCHANGE_MAP.get(sym, "CME")),
+                    pair, sym, "USD", sec_type="FUT", exchange=exch,
                 )
 
         else:
