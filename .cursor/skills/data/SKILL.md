@@ -116,7 +116,7 @@ docker compose run --rm freqtrade download-data \
 **Форекс:**
 ```bash
 docker compose run --rm freqtrade download-data \
-  --config /freqtrade/user_data/config_forex.json \
+  --config /freqtrade/user_data/config/config_forex.json \
   --pairs EUR/USD GBP/USD \
   --exchange interactivebrokers \
   --days 30 \
@@ -126,7 +126,7 @@ docker compose run --rm freqtrade download-data \
 **Акции:**
 ```bash
 docker compose run --rm freqtrade download-data \
-  --config /freqtrade/user_data/config_stocks.json \
+  --config /freqtrade/user_data/config/config_stocks.json \
   --pairs AAPL/USD TSLA/USD \
   --exchange interactivebrokers \
   --days 30 \
@@ -136,7 +136,7 @@ docker compose run --rm freqtrade download-data \
 **Фьючерсы:**
 ```bash
 docker compose run --rm freqtrade download-data \
-  --config /freqtrade/user_data/config_futures.json \
+  --config /freqtrade/user_data/config/config_futures.json \
   --pairs GC/USD ES/USD \
   --exchange interactivebrokers \
   --days 30 \

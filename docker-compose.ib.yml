@@ -40,4 +40,4 @@ services:
     #   docker-compose.override.yml for live trading
     command: >
       webserver
-      --config /freqtrade/user_data/config_forex.json
+      --config /freqtrade/user_data/config/config_forex.json

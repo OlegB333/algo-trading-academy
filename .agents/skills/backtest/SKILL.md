@@ -93,7 +93,7 @@ docker compose run --rm freqtrade backtesting \
 **Шаг 2.** Определи источник данных по конфигу:
 - `config.json` → Спот Binance, папка `data/binance/`
 - `config_crypto_futures.json` → Фьючерсы Binance, папка `data/binance/`
-- `config_forex.json`, `config_stocks.json`, `config_futures.json` (в корне `user_data/`) → Interactive Brokers, папка `data/interactivebrokers/`
+- `config_forex.json`, `config_stocks.json`, `config_futures.json` (в `user_data/config/`) → Interactive Brokers, папка `data/interactivebrokers/`
 
 **Шаг 3.** Проверь наличие файлов данных для каждой пары:
 - Файлы лежат в `user_data/data/<exchange>/` в формате `ПАРА-ТАЙМФРЕЙМ.parquet` (или `.feather`)
