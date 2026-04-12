@@ -70,6 +70,6 @@
     },
     "timeframe": "1h",
     "ib_host": "ib-gateway",
-    "ib_paper_port": 4004,
+    "ib_paper_port": 4002,
     "ib_client_id": 1
 }
