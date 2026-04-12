@@ -14,18 +14,12 @@ user_data/tradesv3.sqlite-shm
 user_data/tradesv3.sqlite-wal
 user_data/config/config.override.json
 
-# Downloaded data (too large for git)
-user_data/data/*/*.parquet
-user_data/data/*/*.json
-user_data/data/*/*.json.gz
-user_data/data/*/*.feather
-user_data/data/*/futures/
-
-# Keep standard BTC and ETH pairs for testing
-!user_data/data/*/*btc*
-!user_data/data/*/*BTC*
-!user_data/data/*/*eth*
-!user_data/data/*/*ETH*
+# Downloaded data (too large for git, ignored except test datasets)
+user_data/data/*/*.*
+# Do not ignore test datasets for AAPL, ES, EUR
+!user_data/data/*/*AAPL*.parquet
+!user_data/data/*/*EUR*.parquet
+!user_data/data/*/futures/*ES*.parquet
 
 # Python
 __pycache__/

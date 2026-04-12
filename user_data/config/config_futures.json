@@ -21,8 +21,7 @@
         "ccxt_sync_config": {},
         "ccxt_async_config": {},
         "pair_whitelist": [
-            "ES/USD",
-            "NQ/USD"
+            "ES/USD"
         ],
         "pair_blacklist": []
     },
