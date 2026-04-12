@@ -13,6 +13,7 @@
         "name": "interactivebrokers",
         "key": "",
         "secret": "",
+        "skip_pair_validation": true,
         "ccxt_sync_config": {},
         "ccxt_async_config": {},
         "pair_whitelist": [
@@ -45,7 +46,8 @@
     },
     "pairlists": [
         {
-            "method": "StaticPairList"
+            "method": "StaticPairList",
+            "allow_inactive": true
         }
     ],
     "api_server": {
