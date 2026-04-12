@@ -16,6 +16,7 @@
         "name": "interactivebrokers",
         "key": "",
         "secret": "",
+        "max_leverage": 100.0,
         "skip_pair_validation": true,
         "ccxt_sync_config": {},
         "ccxt_async_config": {},

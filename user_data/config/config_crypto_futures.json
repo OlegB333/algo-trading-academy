@@ -35,6 +35,7 @@
         "name": "binance",
         "key": "",
         "secret": "",
+        "max_leverage": 100.0,
         "ccxt_config": {},
         "ccxt_async_config": {},
         "pair_whitelist": [
