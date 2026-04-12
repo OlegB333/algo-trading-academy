@@ -225,7 +225,10 @@ class Interactivebrokers(Foreignexchange):
             logger.info("Set default candle_type_def to 'spot' for interactivebrokers")
 
         # Register signal handler for SIGINT (Ctrl+C)
-        signal.signal(signal.SIGINT, self._handle_sigint)
+        # But ONLY if we are in the main thread (otherwise Uvicorn worker threads will crash on init)
+        import threading
+        if threading.current_thread() is threading.main_thread():
+            signal.signal(signal.SIGINT, self._handle_sigint)
 
     def _handle_sigint(self, signum, frame):
         logger.info("Received Ctrl+C, forcing immediate shutdown...")
