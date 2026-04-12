@@ -187,14 +187,14 @@ class Interactivebrokers(Foreignexchange):
         # Set ports based on live/paper trading
         # TWS Live: 7496
         # TWS Paper: 7497
-        # IB Gateway Live: 4001
-        # IB Gateway Paper: 4002
+        # IB Gateway Live (via socat proxy): 4003 (Java is on 4001)
+        # IB Gateway Paper (via socat proxy): 4004 (Java is on 4002)
 
         if self.dry_run:
-            self.port = config.get("ib_paper_port", 4002)
+            self.port = config.get("ib_paper_port", 4004)
             logger.info(f"Connecting to IBKR paper trading (IB Gateway) on port {self.port}.")
         else:
-            self.port = config.get("ib_live_port", 7496)
+            self.port = config.get("ib_live_port", 4003)
             logger.info(f"Connecting to IBKR live trading (TWS) on port {self.port}.")
 
         # Set up host

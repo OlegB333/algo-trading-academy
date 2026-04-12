@@ -12,11 +12,11 @@ services:
       - READ_ONLY_API=no
       - VNC_SERVER_PASSWORD=algotrading
     ports:
-      - "4001:4001"   # Live trading
-      - "4002:4002"   # Paper trading
+      - "4003:4003"   # Live trading (socat internal proxy)
+      - "4004:4004"   # Paper trading (socat internal proxy)
       - "5900:5900"   # VNC (debug only)
     healthcheck:
-      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/4002' || exit 1"]
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/4001' 2>/dev/null || bash -c '</dev/tcp/localhost/4002' 2>/dev/null || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
