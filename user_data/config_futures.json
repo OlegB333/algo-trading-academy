@@ -20,19 +20,8 @@
         "ccxt_sync_config": {},
         "ccxt_async_config": {},
         "pair_whitelist": [
-            "ES/USD", "NQ/USD", "RTY/USD", "YM/USD",
-            "MES/USD", "MNQ/USD", "DJT/USD",
-            "GC/USD", "SI/USD", "HG/USD",
-            "PL/USD", "PA/USD", "MGC/USD", "SIL/USD",
-            "CL/USD", "NG/USD", "RB/USD", "HO/USD", "BZ/USD",
-            "ZB/USD", "ZN/USD", "ZF/USD", "ZT/USD",
-            "6E/USD", "6B/USD", "6J/USD", "6C/USD",
-            "6A/USD", "6N/USD", "6S/USD",
-            "ZC/USD", "ZS/USD", "ZW/USD", "ZM/USD",
-            "ZL/USD", "ZO/USD", "ZR/USD",
-            "LE/USD", "GF/USD", "HE/USD",
-            "KC/USD", "SB/USD", "CC/USD", "CT/USD", "OJ/USD",
-            "DX/USD", "VX/USD", "LBS/USD"
+            "ES/USD",
+            "NQ/USD"
         ],
         "pair_blacklist": []
     },
