@@ -42,6 +42,9 @@ class CMEFutures_ES_30m(IStrategy):
         return 3.0
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        if dataframe.empty:
+            return dataframe
+
         dataframe["rsi"] = ta.RSI(dataframe, timeperiod=14)
         dataframe["sma_20"] = ta.SMA(dataframe, timeperiod=20)
         dataframe["sma_50"] = ta.SMA(dataframe, timeperiod=50)

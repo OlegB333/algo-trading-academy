@@ -35,6 +35,9 @@ class AcademySampleStrategy(IStrategy):
     startup_candle_count: int = 30
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        if dataframe.empty:
+            return dataframe
+
         """Add technical indicators to the dataframe."""
         dataframe['sma_fast'] = ta.SMA(dataframe, timeperiod=10)
         dataframe['sma_slow'] = ta.SMA(dataframe, timeperiod=30)

@@ -204,8 +204,11 @@ class Interactivebrokers(Foreignexchange):
         # Set margin mode and initialize markets
         self.margin_mode = MarginMode.NONE
         
-        # Connect to IBKR only if validate is True (so WebUI and backtests don't crash without IBKR)
-        if validate:
+        # Connect to IBKR only if validate is True or we are running download-data
+        is_download_data = any("download-data" in arg for arg in sys.argv)
+        
+        if validate or is_download_data:
+            logger.info(f"Connecting to IBKR (validate={validate}, download_data={is_download_data})")
             self._connect_to_ib()
             self.markets = self.get_markets()
             

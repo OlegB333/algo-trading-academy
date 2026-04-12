@@ -32,6 +32,9 @@ class Forex_EURUSD_30m(IStrategy):
     }
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        if dataframe.empty:
+            return dataframe
+
         dataframe["volume"] = 1.0  # Freqtrade ignores entries with 0 volume
         dataframe["rsi"] = ta.RSI(dataframe, timeperiod=14)
         dataframe["sma_20"] = ta.SMA(dataframe, timeperiod=20)
