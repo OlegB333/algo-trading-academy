@@ -901,57 +901,33 @@ class Interactivebrokers(Foreignexchange):
         asset_type = self._get_asset_type()
 
         if asset_type == "forex":
-            forex_pairs = [
+            # For forex, accept ANY pair dynamically via _ensure_market_exists
+            # Seed with common pairs for market listing, but any pair works
+            common_forex = [
                 ("EUR", "USD"), ("USD", "JPY"), ("GBP", "USD"), ("USD", "CHF"),
                 ("AUD", "USD"), ("USD", "CAD"), ("NZD", "USD"),
-                ("EUR", "JPY"), ("EUR", "GBP"), ("GBP", "JPY"), ("EUR", "CHF"),
-                ("EUR", "CAD"), ("EUR", "AUD"), ("GBP", "CHF"), ("GBP", "CAD"),
-                ("GBP", "AUD"), ("AUD", "JPY"), ("AUD", "CAD"), ("AUD", "CHF"),
-                ("CAD", "JPY"), ("CHF", "JPY"), ("NZD", "JPY"), ("NZD", "CAD"),
-                ("NZD", "CHF"), ("AUD", "NZD"), ("EUR", "NZD"), ("GBP", "NZD"),
-                ("USD", "SEK"), ("USD", "NOK"), ("USD", "DKK"), ("USD", "SGD"),
-                ("USD", "HKD"), ("USD", "MXN"), ("USD", "ZAR"), ("USD", "PLN"),
-                ("USD", "CZK"), ("USD", "HUF"), ("USD", "TRY"), ("USD", "CNH"),
-                ("USD", "KRW"), ("USD", "INR"), ("EUR", "SEK"), ("EUR", "NOK"),
-                ("EUR", "DKK"), ("EUR", "PLN"), ("EUR", "CZK"), ("EUR", "HUF"),
-                ("EUR", "TRY"), ("USD", "THB"), ("CAD", "CHF"), ("USD", "ILS"),
-                ("USD", "RON"), ("GBP", "SGD"),
             ]
-            for base, quote in forex_pairs:
+            for base, quote in common_forex:
                 pair = f"{base}/{quote}"
                 markets[pair] = self._make_market_entry(pair, base, quote, sec_type="CASH")
 
         elif asset_type == "stocks":
-            stock_symbols = self.config.get("stock_symbols", [
-                "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "NVDA", "BRK.B",
-                "LLY", "UNH", "XOM", "V", "JPM", "JNJ", "WMT", "PG", "MA", "ORCL",
-                "CVX", "HD", "MRK", "KO", "PEP", "COST", "ABBV", "BAC", "ADBE",
-                "CRM", "TMO", "AVGO", "NFLX", "AMD", "DIS", "ACN", "NKE", "TXN",
-                "DHR", "VZ", "COP", "PFE", "CMCSA", "QCOM", "WFC", "NEE", "PM",
-                "INTC", "LIN", "RTX", "T", "UNP", "LOW", "IBM", "SPGI", "CAT",
-                "INTU", "GS", "MDT", "BKNG", "GILD", "AXP", "HON", "SYK", "DE",
-                "ISRG", "NOW", "BLK", "GE", "AMT", "ELV", "VRTX", "CI", "SLB",
-                "MMC", "PLD", "C", "SO", "ZTS", "MDLZ", "MO", "CB", "REGN", "DUK",
-                "FDX", "PGR", "AON", "EMR", "BSX", "ITW", "EOG", "CSX", "CL", "GM",
-                "MCD", "USB", "NSC", "MMM", "APD", "SBUX", "TGT", "PSA", "ADI",
-            ])
-            for symbol in stock_symbols:
+            # For stocks, accept ANY ticker dynamically via _ensure_market_exists
+            # Seed with common stocks for market listing, but any ticker works
+            common_stocks = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA"]
+            for symbol in common_stocks:
                 pair = f"{symbol}/USD"
                 markets[pair] = self._make_market_entry(
                     pair, symbol, "USD", sec_type="STK", exchange="SMART"
                 )
 
         elif asset_type == "futures":
-            # Build markets from ALL known futures (hardcoded map + user config)
-            # This eliminates the need for manual whitelist management
+            # For futures, MUST use exchange map — IB requires explicit exchange
             all_futures = {}
-            # 1. Start with all tickers from the hardcoded exchange map
             for sym, exch in FUTURES_EXCHANGE_MAP.items():
                 all_futures[sym] = exch
-            # 2. Override/extend with user-defined contracts from config
             for fc in self.config.get("futures_contracts", []):
                 all_futures[fc["symbol"]] = fc.get("exchange", "CME")
-            # 3. Build market entries
             for sym, exch in all_futures.items():
                 pair = f"{sym}/USD"
                 markets[pair] = self._make_market_entry(
@@ -960,13 +936,46 @@ class Interactivebrokers(Foreignexchange):
 
         else:
             logger.warning(f"Unknown asset_type '{asset_type}', defaulting to forex markets")
-            # Build forex markets directly to avoid infinite recursion
             for base, quote in [("EUR", "USD"), ("GBP", "USD"), ("USD", "JPY")]:
                 pair = f"{base}/{quote}"
                 markets[pair] = self._make_market_entry(pair, base, quote, sec_type="CASH")
 
         self._markets_cache = markets
         return markets
+
+    def _ensure_market_exists(self, pair: str) -> None:
+        """Dynamically add a market entry if it doesn't exist yet.
+        This allows downloading data for ANY forex pair or stock without
+        pre-registering it in a whitelist or config file."""
+        if pair in self.markets:
+            return
+
+        asset_type = self._get_asset_type()
+        symbol = pair.split("/")[0]
+        currency = pair.split("/")[1] if "/" in pair else "USD"
+
+        if asset_type == "forex":
+            self.markets[pair] = self._make_market_entry(
+                pair, symbol, currency, sec_type="CASH"
+            )
+        elif asset_type == "stocks":
+            self.markets[pair] = self._make_market_entry(
+                pair, symbol, currency, sec_type="STK", exchange="SMART"
+            )
+        elif asset_type == "futures":
+            exchange = FUTURES_EXCHANGE_MAP.get(symbol, "CME")
+            # Also check user config overrides
+            for fc in self.config.get("futures_contracts", []):
+                if fc.get("symbol") == symbol:
+                    exchange = fc.get("exchange", exchange)
+                    break
+            self.markets[pair] = self._make_market_entry(
+                pair, symbol, currency, sec_type="FUT", exchange=exchange,
+            )
+        # Also update the cache
+        if self._markets_cache is not None:
+            self._markets_cache[pair] = self.markets[pair]
+        logger.info(f"Dynamically registered market for {pair} ({asset_type})")
 
     def reload_markets(self, params: dict[Any, Any] | None = None) -> dict:
         self.markets = self.get_markets(reload=True, params=params)
@@ -1089,6 +1098,9 @@ class Interactivebrokers(Foreignexchange):
         """
         if isinstance(pair, tuple):
             pair = pair[0]
+
+        # Dynamically register this pair if not already in markets
+        self._ensure_market_exists(pair)
 
         # Use config timeframe if none provided
         tf = timeframe or self.config.get("timeframe", "1h")
@@ -2043,6 +2055,8 @@ class Interactivebrokers(Foreignexchange):
         IB API: reqHistoricalTicks(whatToShow='TRADES')
         Returns up to 1000 ticks per call, paginate by time.
         """
+        # Dynamically register this pair if not already in markets
+        self._ensure_market_exists(pair)
         # Call the synchronous builder which is safe outside of the background event loop
         contract = self._build_contract(pair)
 
