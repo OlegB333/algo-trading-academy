@@ -15,9 +15,17 @@ user_data/tradesv3.sqlite-wal
 user_data/config/config.override.json
 
 # Downloaded data (too large for git)
-# Keep only bundled test data
-user_data/data/*/futures/
+user_data/data/*/*.parquet
+user_data/data/*/*.json
 user_data/data/*/*.json.gz
+user_data/data/*/*.feather
+user_data/data/*/futures/
+
+# Keep standard BTC and ETH pairs for testing
+!user_data/data/*/*btc*
+!user_data/data/*/*BTC*
+!user_data/data/*/*eth*
+!user_data/data/*/*ETH*
 
 # Python
 __pycache__/

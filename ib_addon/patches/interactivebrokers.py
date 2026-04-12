@@ -692,9 +692,9 @@ class Interactivebrokers(Foreignexchange):
             raise ConnectionError("Shutdown in progress")
 
         now = time.time()
-        # 1) Return cached price if within 1 second
+        # 1) Return cached price if not expired
         cached = self._live_price_cache.get(pair)
-        if cached and (now - cached[0] < 1.0):
+        if cached and now < cached[0]:
             price = cached[1]
             logger.debug(f"Using cached price for {pair} ({side}): {price}")
             return price
@@ -747,8 +747,8 @@ class Interactivebrokers(Foreignexchange):
             else:
                 price = (bid + ask) / 2
 
-            # 3) Cache and log live price
-            self._live_price_cache[pair] = (now, price)
+            # 3) Cache and log live price (1 second expiry for live data)
+            self._live_price_cache[pair] = (now + 1.0, price)
             logger.info(f"Returning price for {pair} ({side}): {price}")
             return price
 
@@ -757,6 +757,8 @@ class Interactivebrokers(Foreignexchange):
             # 4) On any failure, fallback to historical close
             price = self._fallback_to_historical_rate(pair)
             logger.info(f"Historical fallback price for {pair}: {price}")
+            # Cache the fallback price for 120 seconds to prevent API spam when market is closed
+            self._live_price_cache[pair] = (now + 120.0, price)
             return price
         finally:
             pass
@@ -1032,7 +1034,7 @@ class Interactivebrokers(Foreignexchange):
         return f"{seconds} S"
 
     async def fetch_historical_data(
-        self, pair: str, timeframe: str, since: int | None = None, limit: int = 1000
+        self, pair: str, timeframe: str, since: int | None = None, until: int | None = None, limit: int = 1000
     ) -> pd.DataFrame:
         """
         Optimized history fetcher for FreqUI and Strategy analysis.
@@ -1044,15 +1046,26 @@ class Interactivebrokers(Foreignexchange):
         _, ib_bar_size = self._map_timeframe_to_ib(timeframe)
 
         # 2. Dynamic Duration Calculation
+        end_dt_str = ""
+        end_ts = datetime.now(UTC).timestamp()
+        
+        if until:
+            end_datetime = datetime.fromtimestamp(until / 1000, tz=UTC)
+            end_dt_str = end_datetime.strftime("%Y%m%d %H:%M:%S")
+            end_ts = until / 1000
+
         if since:
             # Handle if 'since' comes in as a string or float from FreqUI
             try:
                 since_ms = int(since)
-                now_ts = datetime.now(UTC).timestamp()
-                duration_seconds = int(now_ts - (since_ms / 1000))
+                duration_seconds = int(end_ts - (since_ms / 1000))
             except (ValueError, TypeError):
                 duration_seconds = self.timeframe_to_minutes(timeframe) * 60 * limit
         else:
+            duration_seconds = self.timeframe_to_minutes(timeframe) * 60 * limit
+
+        # Failsafe if duration is somehow zero or negative
+        if duration_seconds <= 0:
             duration_seconds = self.timeframe_to_minutes(timeframe) * 60 * limit
 
         duration_str = self._format_ib_duration(duration_seconds)
@@ -1062,7 +1075,7 @@ class Interactivebrokers(Foreignexchange):
         try:
             bars = await self.ib.reqHistoricalDataAsync(
                 contract,
-                endDateTime="",
+                endDateTime=end_dt_str,
                 durationStr=duration_str,
                 barSizeSetting=ib_bar_size,
                 whatToShow=what_to_show,
@@ -1088,16 +1101,35 @@ class Interactivebrokers(Foreignexchange):
     def get_historic_ohlcv(
         self,
         pair: str,
-        since: int | None = None,  # 'since' MUST be the 2nd positional argument
-        timeframe: str | None = None,  # 'timeframe' MUST be the 3rd positional argument
-        limit: int = 1000,
+        *args,
         **kwargs,
     ) -> pd.DataFrame:
         """
-        Matches Freqtrade's expected signature: (pair, since, timeframe, limit)
+        Matches Freqtrade's expected signature: (pair, timeframe, since_ms, is_new_pair, raise_, until_ms...)
+        Using dynamic arg parsing to avoid positional bugs when called internally vs from core.
         """
         if isinstance(pair, tuple):
             pair = pair[0]
+
+        timeframe = kwargs.get("timeframe")
+        since = kwargs.get("since_ms") or kwargs.get("since")
+        until = kwargs.get("until_ms") or kwargs.get("until")
+        limit = kwargs.get("limit", 1000)
+
+        # Smart positional argument sniffing
+        if len(args) >= 1:
+            if isinstance(args[0], str) and not timeframe:
+                timeframe = args[0]
+            elif isinstance(args[0], (int, float)) and not since:
+                since = int(args[0])
+        if len(args) >= 2:
+            if isinstance(args[1], (int, float)) and not since:
+                since = int(args[1])
+            elif isinstance(args[1], str) and not timeframe:
+                timeframe = args[1]
+        if len(args) >= 4 and not until:
+            if isinstance(args[4], (int, float)): # approx until_ms position
+                until = int(args[4])
 
         # Dynamically register this pair if not already in markets
         self._ensure_market_exists(pair)
@@ -1107,7 +1139,7 @@ class Interactivebrokers(Foreignexchange):
 
         # Run the async fetcher
         df = self.ib.run(
-            self.fetch_historical_data(pair=pair, timeframe=tf, since=since, limit=limit)
+            self.fetch_historical_data(pair=pair, timeframe=tf, since=since, until=until, limit=limit)
         )
         return df
 
@@ -1390,11 +1422,11 @@ class Interactivebrokers(Foreignexchange):
         if asset_type == "forex":
             return 100000.0
         elif asset_type == "futures":
-            # Try to get multiplier from cached contract
-            contract = self._contract_cache.get(pair)
+            # Guarantee we have the contract and its multiplier
+            contract = self._build_contract(pair)
             if contract and hasattr(contract, 'multiplier') and contract.multiplier:
                 return float(contract.multiplier)
-            return 50.0  # Default ES multiplier
+            return 50.0  # Safe fallback if API fails
         else:  # stocks
             return 1.0
 
@@ -2034,6 +2066,7 @@ class Interactivebrokers(Foreignexchange):
             "1m": ("D", "1 min"),
             "5m": ("D", "5 mins"),
             "15m": ("D", "15 mins"),
+            "30m": ("D", "30 mins"),
             "1h": ("W", "1 hour"),
             "4h": ("M", "4 hours"),
             "1d": ("Y", "1 day"),
