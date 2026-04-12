@@ -62,15 +62,13 @@ docker compose run --rm freqtrade backtesting \
 
 ## Бэктест Фьючерсов на Крипто
 
-Для фьючерсов на Binance всегда используй выделенный конфигурационный файл (передавай его явно):
+Для фьючерсов на Binance всегда явно передавай выделенный конфигурационный файл:
 ```bash
 docker compose run --rm freqtrade backtesting \
   --config /freqtrade/user_data/config/config_crypto_futures.json \
   --strategy ИмяСтратегии \
   --timerange YYYYMMDD-YYYYMMDD
 ```
-
-Не нужно создавать или менять файл вручную — он уже настроен (spot->futures) и лежит в папке `/freqtrade/user_data/config/config_crypto_futures.json`.
 
 ## Как объяснять результаты ученику
 
