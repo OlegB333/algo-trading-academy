@@ -201,20 +201,24 @@ class Interactivebrokers(Foreignexchange):
         self.host = config.get("ib_host", "127.0.0.1")
         self.client_id = config.get("ib_client_id", 1)
 
-        # Connect to IBKR
-        self._connect_to_ib()
-
         # Set margin mode and initialize markets
         self.margin_mode = MarginMode.NONE
-        self.markets = self.get_markets()
-
-        # Start WebSocket connection
-        self.ws_start()
-
-        # Verify connection is established
-        if not self.ib.isConnected():
-            logger.error("Failed to establish connection to Interactive Brokers")
-            raise ConnectionError("WebSocket connection failed")
+        
+        # Connect to IBKR only if validate is True (so WebUI and backtests don't crash without IBKR)
+        if validate:
+            self._connect_to_ib()
+            self.markets = self.get_markets()
+            
+            # Start WebSocket connection
+            self.ws_start()
+            
+            # Verify connection is established
+            if not self.ib.isConnected():
+                logger.error("Failed to establish connection to Interactive Brokers")
+                raise ConnectionError("WebSocket connection failed")
+        else:
+            logger.info("Validate is False: skipping IBKR API connection.")
+            self.markets = {}
 
         if "candle_type_def" not in self.config:
             self.config["candle_type_def"] = "spot"
@@ -254,7 +258,7 @@ class Interactivebrokers(Foreignexchange):
                     logger.error("❌ IBKR connection failed silently.")
                     self._ws_connected = False
                     self.connected = False
-                    raise SystemExit("❌ Could not establish connection to IBKR.")
+                    raise OperationalException("❌ Could not establish connection to IBKR.")
 
                 logger.info("✅ IBKR connection established.")
                 self._ws_connected = True
@@ -267,13 +271,13 @@ class Interactivebrokers(Foreignexchange):
                 )
                 self._ws_connected = False
                 self.connected = False
-                raise SystemExit("❌ Could not connect to IBKR. Is IB Gateway running?")
+                raise OperationalException("❌ Could not connect to IBKR. Is IB Gateway running?")
 
             except Exception as e:
                 logger.error(f"❌ Unexpected error during IBKR connection: {e}")
                 self._ws_connected = False
                 self.connected = False
-                raise SystemExit("❌ Unexpected failure connecting to IBKR.")
+                raise OperationalException("❌ Unexpected failure connecting to IBKR.")
 
     def _setup_event_loop(self) -> None:
         if self._connection_thread and self._connection_thread.is_alive():
