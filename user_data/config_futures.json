@@ -14,7 +14,13 @@
     "asset_type": "futures",
     "futures_contracts": [
         {"symbol": "ES", "exchange": "CME"},
-        {"symbol": "NQ", "exchange": "CME"}
+        {"symbol": "NQ", "exchange": "CME"},
+        {"symbol": "GC", "exchange": "COMEX"},
+        {"symbol": "CL", "exchange": "NYMEX"},
+        {"symbol": "ZN", "exchange": "CBOT"},
+        {"symbol": "ZC", "exchange": "CBOT"},
+        {"symbol": "KC", "exchange": "NYBOT"},
+        {"symbol": "6E", "exchange": "CME"}
     ],
     "exchange": {
         "name": "interactivebrokers",
@@ -24,7 +30,13 @@
         "ccxt_async_config": {},
         "pair_whitelist": [
             "ES/USD",
-            "NQ/USD"
+            "NQ/USD",
+            "GC/USD",
+            "CL/USD",
+            "ZN/USD",
+            "ZC/USD",
+            "KC/USD",
+            "6E/USD"
         ],
         "pair_blacklist": []
     },

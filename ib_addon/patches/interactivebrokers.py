@@ -65,8 +65,6 @@ FUTURES_EXCHANGE_MAP = {
     "KC": "NYBOT", "SB": "NYBOT", "CC": "NYBOT", "CT": "NYBOT", "OJ": "NYBOT",
     # Прочие
     "DX": "NYBOT", "VX": "CFE", "LBS": "CME",
-    # Европейские (EUREX)
-    "FEI": "EUREX", "FNG": "EUREX",
 }
 
 

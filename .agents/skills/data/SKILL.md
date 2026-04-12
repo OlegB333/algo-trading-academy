@@ -106,8 +106,6 @@ docker compose run --rm freqtrade download-data \
 | Индекс доллара | `DX` | NYBOT | Прочие |
 | VIX, Волатильность | `VX` | CFE | Прочие |
 | Lumber | `LBS` | CME | Прочие |
-| Euribor | `FEI` | EUREX | Европа |
-| European Gas | `FNG` | EUREX | Европа |
 
 **Шаг 3.** Если тикера **нет в таблице**, **СПРОСИ ученика**: *"На какой бирже торгуется этот фьючерс?"*
 
