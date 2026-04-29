@@ -518,7 +518,11 @@ class Interactivebrokers(Foreignexchange):
             # proceed anyway
 
         # ——— initialize contract, amount, price ———
-        contract, amount, price = self._initialize_contract_amount_price(pair, amount, price, rate)
+        try:
+            contract, amount, price = self._initialize_contract_amount_price(pair, amount, price, rate)
+        except ValueError as e:
+            logger.error(f"Failed to initialize order for {pair}: {e}")
+            return self._failed_response(pair, ordertype, side, amount, price, str(e))
 
         use_market = ordertype.lower() == "market" or (
             side.lower() == "sell" and params.get("exit_as_market", False)
@@ -600,9 +604,15 @@ class Interactivebrokers(Foreignexchange):
         if asset_type == "forex":
             min_lot = self.MIN_LOT_SIZE
             amount = max(min_lot, math.floor(amount / min_lot) * min_lot)
+        elif asset_type == "stocks":
+            amount = math.floor(amount)
+            if amount < 1:
+                raise ValueError(
+                    f"Stock order amount for {pair} is below 1 whole share. "
+                    "Increase stake_amount or choose a lower-priced stock."
+                )
         elif asset_type == "futures":
             amount = max(1, int(amount))  # Futures trade in whole contracts
-        # stocks: amount stays as-is (whole shares)
 
         return contract, amount, price
 
@@ -1297,6 +1307,23 @@ class Interactivebrokers(Foreignexchange):
             raise ValueError(f"Pair {pair} not found in markets")
         return self.markets[pair]["base"]
 
+    def _contracts_to_amount(self, pair: str, contracts: float) -> float:
+        """
+        Convert Freqtrade contract units back to asset amount.
+
+        IB stocks/forex positions are already reported as plain quantities in
+        this connector, so one contract maps to one amount unit.
+        """
+        return float(contracts)
+
+    def _amount_to_contracts(self, pair: str, amount: float) -> float:
+        """
+        Convert asset amount to Freqtrade contract units.
+
+        Keep this symmetric with `_contracts_to_amount` for spot-like IB assets.
+        """
+        return float(amount)
+
     def ws_connection_reset(self) -> None:
         if self.ib.isConnected():
             self.ib.disconnect()
@@ -1927,11 +1954,23 @@ class Interactivebrokers(Foreignexchange):
             if amount == 0:
                 continue
             avg_cost = float(pos.avgCost)
+            abs_amount = abs(amount)
+            collateral = abs_amount * avg_cost
             positions.append(
                 {
                     "symbol": sym,
                     "amount": amount,
+                    "contracts": abs_amount,
+                    "contractSize": 1.0,
+                    "side": "long" if amount > 0 else "short",
                     "entry_price": avg_cost,
+                    "entryPrice": avg_cost,
+                    "markPrice": avg_cost,
+                    "collateral": collateral,
+                    "leverage": 1.0,
+                    "liquidationPrice": None,
+                    "percentage": None,
+                    "unrealizedPnl": None,
                     "info": {},
                 }
             )
