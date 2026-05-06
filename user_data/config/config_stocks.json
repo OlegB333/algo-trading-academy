@@ -73,7 +73,8 @@
         "process_throttle_secs": 5
     },
     "timeframe": "1h",
-    "ib_host": "ib-gateway",
-    "ib_paper_port": 4004,
+    "ib_host": "host.docker.internal",
+    "ib_paper_port": 7497,
+    "ib_live_port": 7497,
     "ib_client_id": 2
 }
