@@ -33,11 +33,10 @@ services:
       - ./user_data:/freqtrade/user_data
     ports:
       - "8080:8080"   # FreqUI
-    depends_on:
-      ib-gateway:
-        condition: service_healthy
     # Default: Webserver mode. Override with:
     #   docker-compose.override.yml for live trading
+    # Note: no depends_on ib-gateway — when using local TWS, start freqtrade only.
+    #       When deploying on VPS, start ib-gateway separately first.
     command: >
       webserver
       --config /freqtrade/user_data/config/config_forex.json

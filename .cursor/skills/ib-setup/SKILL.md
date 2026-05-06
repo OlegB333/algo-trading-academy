@@ -80,13 +80,16 @@ nc -z 127.0.0.1 7497 && echo "PORT_OPEN" || echo "PORT_CLOSED"
 
 ---
 
-### Шаг 4. Запуск Freqtrade с IB
+### Шаг 4. Запуск Freqtrade (только freqtrade, без Gateway)
 
-Когда порт открыт — запускай контейнер:
+Когда порт открыт — запускай **только** контейнер `freqtrade`, без `ib-gateway`:
 
 ```bash
-docker compose -f docker-compose.ib.yml up -d
+docker compose -f docker-compose.ib.yml up -d freqtrade
 ```
+
+> `ib-gateway` — это Docker-контейнер для удалённого VPS-деплоя без TWS.
+> При локальной работе с TWS он не нужен и запускать его не следует.
 
 ### Шаг 5. Проверка статуса
 
@@ -94,10 +97,7 @@ docker compose -f docker-compose.ib.yml up -d
 docker compose -f docker-compose.ib.yml ps
 ```
 
-Ожидай статуса `Up` у контейнера `freqtrade-ib`.
-Контейнер `ib-gateway` при работе с TWS **может не запуститься** — это нормально,
-Freqtrade подключается напрямую к TWS через `host.docker.internal:7497`.
-
+Ожидай статуса `Up` только у контейнера `freqtrade-ib`.
 Если контейнер не поднялся — проверь логи:
 ```bash
 docker compose -f docker-compose.ib.yml logs freqtrade --tail 30
