@@ -28,7 +28,7 @@
 | Режим | Команда | Когда |
 |-------|---------|-------|
 | **Webserver** (по умолчанию) | `docker compose up -d` | Обучение: FreqUI, бэктест и крипта |
-| **Фондовый рынок (IB)** | `docker compose -f docker-compose.ib.yml up -d` | Торговля акциями/фьючерсами (Interactive Brokers, skill `ib-setup`) |
+| **Фондовый рынок (IB)** | `docker compose -f docker-compose.ib.yml up -d` | Торговля акциями/фьючерсами (Interactive Brokers TWS, skill `ib-setup`) |
 | **Разовая команда** | `docker compose run --rm freqtrade ...` | Бэктест, hyperopt, скачивание данных (параллельно с webserver) |
 | **Trade** (через override) | `docker-compose.override.yml` | Dry-run или live-торговля (модули 6-7, skill `live`) |
 
@@ -80,7 +80,8 @@ Override НЕ подхватывается автоматически — все
 user_data/
 ├── config/          # конфиги (config.json + override)
 ├── strategies/      # стратегии (.py файлы)
-├── data/binance/    # исторические данные (parquet)
+├── data/binance/    # исторические данные крипто (parquet)
+├── data/interactivebrokers/  # данные акций/форекс/фьючерсов
 ├── backtest_results/# результаты бэктестов
 ├── logs/            # логи бота
 └── tradesv3.sqlite  # БД трейдов (автосоздаётся)

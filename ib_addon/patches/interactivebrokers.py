@@ -2220,14 +2220,15 @@ class Interactivebrokers(Foreignexchange):
         while True:
             try:
                 # reqHistoricalTicks blocks in the background thread (from run)
-                # But freqtrade executes download-data out of the main async loop!
-                # Since we are using ib_insync, we can use the blocking reqHistoricalTicks.
+                # For Forex (CASH), IB returns MIDPOINT or BID_ASK ticks, not TRADES.
+                what_to_show = "MIDPOINT" if getattr(contract, 'secType', '') == 'CASH' else "TRADES"
+                
                 ticks = self.ib.reqHistoricalTicks(
                     contract,
                     startDateTime=current_start,
                     endDateTime=end_dt,
                     numberOfTicks=1000,        # Max per request
-                    whatToShow="TRADES",
+                    whatToShow=what_to_show,
                     useRth=False,              # Include pre/post-market
                 )
             except Exception as e:
