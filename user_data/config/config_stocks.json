@@ -75,6 +75,6 @@
     "timeframe": "1h",
     "ib_host": "host.docker.internal",
     "ib_paper_port": 7497,
-    "ib_live_port": 7497,
+    "ib_live_port": 7496,
     "ib_client_id": 2
 }
